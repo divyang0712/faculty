@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Availability Checker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS for Excel parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        .upload-area {
+            border: 2px dashed var(--bs-border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--bs-primary);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--bs-success);
+            background-color: rgba(var(--bs-success-rgb), 0.1);
+        }
+        
+        .faculty-card {
+            border-left: 4px solid var(--bs-success);
+        }
+        
+        .faculty-card.busy {
+            border-left-color: var(--bs-danger);
+        }
+        
+        .time-slot-badge {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .result-section {
+            display: none;
+        }
+        
+        .status-free {
+            color: var(--bs-success);
+        }
+        
+        .status-busy {
+            color: var(--bs-danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4 text-center mb-2">
+                    <i class="fas fa-calendar-check me-3"></i>
+                    Faculty Availability Checker
+                </h1>
+                <p class="text-center text-muted">Upload timetable and check faculty availability</p>
+            </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Timetable
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-file-excel fa-3x text-muted mb-3"></i>
+                            <h5>Drop Excel file here or click to browse</h5>
+                            <p class="text-muted">Supported format: .xlsx, .xls</p>
+                            <p class="small text-muted">Required columns: Faculty | Day | Start Time | End Time | Division | Subject | Location</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                        
+                        <div class="loading-spinner mt-3" id="loadingSpinner">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                <span>Processing Excel file...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3" id="fileStatus"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Interface -->
+        <div class="row mb-4" id="searchInterface" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-search me-2"></i>
+                            Check Availability
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="daySelect" class="form-label">Day</label>
+                                <select class="form-select" id="daySelect">
+                                    <option value="">Select Day</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="timeSlotSelect" class="form-label">Time Slot</label>
+                                <select class="form-select" id="timeSlotSelect">
+                                    <option value="">Select Time Slot</option>
+                                    <option value="09:00-09:55">09:00 – 09:55</option>
+                                    <option value="09:55-10:50">09:55 – 10:50</option>
+                                    <option value="10:50-11:45">10:50 – 11:45</option>
+                                    <option value="11:45-12:40">11:45 – 12:40</option>
+                                    <option value="12:40-01:35">12:40 – 01:35</option>
+                                    <option value="01:35-02:25">01:35 – 02:25</option>
+                                    <option value="02:25-03:15">02:25 – 03:15</option>
+                                    <option value="03:15-04:05">03:15 – 04:05</option>
+                                    <option value="04:05-04:55">04:05 – 04:55</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="facultySelect" class="form-label">Faculty (Optional)</label>
+                                <select class="form-select" id="facultySelect">
+                                    <option value="">All Faculty</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-primary me-2" id="checkSingleBtn" disabled>
+                                <i class="fas fa-user me-1"></i>
+                                Check Single Faculty
+                            </button>
+                            <button class="btn btn-secondary" id="checkAllBtn" disabled>
+                                <i class="fas fa-users me-1"></i>
+                                Check All Faculty
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row" id="resultsSection">
+            <!-- Single Faculty Result -->
+            <div class="col-12 mb-4 result-section" id="singleResult">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            Faculty Availability
+                        </h5>
+                    </div>
+                    <div class="card-body" id="singleResultContent">
+                        <!-- Single faculty result will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Faculty Results -->
+            <div class="col-12 result-section" id="allResults">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-success">
+                                <h5 class="card-title mb-0 text-white">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Free Faculty
+                                </h5>
+                            </div>
+                            <div class="card-body" id="freeFactoryContent">
+                                <!-- Free faculty list will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-danger">
+                                <h5 class="card-title mb-0 text-white">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    Busy Faculty
+                                </h5>
+                            </div>
+                            <div class="card-body" id="busyFacultyContent">
+                                <!-- Busy faculty list will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global variables
+        let timetableData = [];
+        let facultyList = [];
+
+        // Time slot mappings
+        const timeSlots = {
+            '09:00-09:55': { start: '09:00', end: '09:55' },
+            '09:55-10:50': { start: '09:55', end: '10:50' },
+            '10:50-11:45': { start: '10:50', end: '11:45' },
+            '11:45-12:40': { start: '11:45', end: '12:40' },
+            '12:40-01:35': { start: '12:40', end: '01:35' },
+            '01:35-02:25': { start: '01:35', end: '02:25' },
+            '02:25-03:15': { start: '02:25', end: '03:15' },
+            '03:15-04:05': { start: '03:15', end: '04:05' },
+            '04:05-04:55': { start: '04:05', end: '04:55' }
+        };
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const fileStatus = document.getElementById('fileStatus');
+        const searchInterface = document.getElementById('searchInterface');
+        const facultySelect = document.getElementById('facultySelect');
+        const daySelect = document.getElementById('daySelect');
+        const timeSlotSelect = document.getElementById('timeSlotSelect');
+        const checkSingleBtn = document.getElementById('checkSingleBtn');
+        const checkAllBtn = document.getElementById('checkAllBtn');
+        const singleResult = document.getElementById('singleResult');
+        const allResults = document.getElementById('allResults');
+
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // File upload area
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+            
+            // File input
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Form controls
+            daySelect.addEventListener('change', updateButtonStates);
+            timeSlotSelect.addEventListener('change', updateButtonStates);
+            facultySelect.addEventListener('change', updateButtonStates);
+            
+            // Buttons
+            checkSingleBtn.addEventListener('click', checkSingleFaculty);
+            checkAllBtn.addEventListener('click', checkAllFaculty);
+        }
+
+        // Drag and drop handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        // File selection handler
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        // Process uploaded file
+        function handleFile(file) {
+            // Validate file type
+            const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                               'application/vnd.ms-excel'];
+            
+            if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
+                showError('Please upload a valid Excel file (.xlsx or .xls)');
+                return;
+            }
+
+            loadingSpinner.style.display = 'block';
+            fileStatus.innerHTML = '';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first worksheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    processExcelData(jsonData);
+                    
+                } catch (error) {
+                    console.error('Error processing Excel file:', error);
+                    showError('Error processing Excel file. Please check the file format.');
+                } finally {
+                    loadingSpinner.style.display = 'none';
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Process Excel data
+        function processExcelData(data) {
+            // Validate required columns
+            const requiredColumns = ['Faculty', 'Day', 'Start Time', 'End Time', 'Division', 'Subject', 'Location'];
+            
+            if (data.length === 0) {
+                showError('Excel file is empty');
+                return;
+            }
+
+            const firstRow = data[0];
+            const missingColumns = requiredColumns.filter(col => !(col in firstRow));
+            
+            if (missingColumns.length > 0) {
+                showError(`Missing required columns: ${missingColumns.join(', ')}`);
+                return;
+            }
+
+            // Process and clean data
+            timetableData = data.map(row => ({
+                faculty: String(row['Faculty'] || '').trim(),
+                day: String(row['Day'] || '').trim(),
+                startTime: String(row['Start Time'] || '').trim(),
+                endTime: String(row['End Time'] || '').trim(),
+                division: String(row['Division'] || '').trim(),
+                subject: String(row['Subject'] || '').trim(),
+                location: String(row['Location'] || '').trim()
+            })).filter(row => row.faculty && row.day);
+
+            // Extract unique faculty list
+            facultyList = [...new Set(timetableData.map(row => row.faculty))].sort();
+            
+            populateFacultyDropdown();
+            showSuccess(`Successfully loaded ${timetableData.length} records for ${facultyList.length} faculty members`);
+            searchInterface.style.display = 'block';
+            updateButtonStates();
+        }
+
+        // Populate faculty dropdown
+        function populateFacultyDropdown() {
+            facultySelect.innerHTML = '<option value="">All Faculty</option>';
+            facultyList.forEach(faculty => {
+                const option = document.createElement('option');
+                option.value = faculty;
+                option.textContent = faculty;
+                facultySelect.appendChild(option);
+            });
+        }
+
+        // Update button states
+        function updateButtonStates() {
+            const day = daySelect.value;
+            const timeSlot = timeSlotSelect.value;
+            const faculty = facultySelect.value;
+            
+            checkSingleBtn.disabled = !(day && timeSlot && faculty);
+            checkAllBtn.disabled = !(day && timeSlot);
+        }
+
+        // Check single faculty availability
+        function checkSingleFaculty() {
+            const day = daySelect.value;
+            const timeSlot = timeSlotSelect.value;
+            const faculty = facultySelect.value;
+            
+            if (!day || !timeSlot || !faculty) {
+                showError('Please select day, time slot, and faculty');
+                return;
+            }
+
+            const availability = getFacultyAvailability(faculty, day, timeSlot);
+            displaySingleResult(faculty, day, timeSlot, availability);
+        }
+
+        // Check all faculty availability
+        function checkAllFaculty() {
+            const day = daySelect.value;
+            const timeSlot = timeSlotSelect.value;
+            
+            if (!day || !timeSlot) {
+                showError('Please select day and time slot');
+                return;
+            }
+
+            const results = facultyList.map(faculty => ({
+                faculty,
+                availability: getFacultyAvailability(faculty, day, timeSlot)
+            }));
+
+            displayAllResults(day, timeSlot, results);
+        }
+
+        // Get faculty availability for specific day and time slot
+        function getFacultyAvailability(faculty, day, timeSlot) {
+            const slot = timeSlots[timeSlot];
+            if (!slot) return { status: 'unknown', details: null };
+
+            // Find matching record
+            const record = timetableData.find(row => 
+                row.faculty === faculty && 
+                row.day === day && 
+                row.startTime === slot.start && 
+                row.endTime === slot.end
+            );
+
+            if (!record) {
+                return { status: 'free', details: null };
+            }
+
+            // Check if the record has division, subject, and location (indicating busy)
+            if (record.division || record.subject || record.location) {
+                return {
+                    status: 'busy',
+                    details: {
+                        division: record.division,
+                        subject: record.subject,
+                        location: record.location
+                    }
+                };
+            }
+
+            return { status: 'free', details: null };
+        }
+
+        // Display single faculty result
+        function displaySingleResult(faculty, day, timeSlot, availability) {
+            const content = document.getElementById('singleResultContent');
+            
+            let statusHtml = '';
+            if (availability.status === 'free') {
+                statusHtml = `
+                    <div class="alert alert-success">
+                        <h5 class="status-free">
+                            <i class="fas fa-check-circle me-2"></i>
+                            FREE
+                        </h5>
+                        <p class="mb-0">${faculty} is available on ${day} during ${timeSlot}</p>
+                    </div>
+                `;
+            } else if (availability.status === 'busy') {
+                statusHtml = `
+                    <div class="alert alert-danger">
+                        <h5 class="status-busy">
+                            <i class="fas fa-times-circle me-2"></i>
+                            BUSY
+                        </h5>
+                        <p class="mb-2">${faculty} is busy on ${day} during ${timeSlot}</p>
+                        <div class="mt-2">
+                            <strong>Details:</strong><br>
+                            <span class="badge bg-primary me-1">${availability.details.division || 'N/A'}</span>
+                            <span class="badge bg-info me-1">${availability.details.subject || 'N/A'}</span>
+                            <span class="badge bg-secondary">${availability.details.location || 'N/A'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="mb-3">
+                    <h6>Query Details:</h6>
+                    <p class="text-muted mb-2">
+                        <strong>Faculty:</strong> ${faculty}<br>
+                        <strong>Day:</strong> ${day}<br>
+                        <strong>Time Slot:</strong> <span class="time-slot-badge badge bg-dark">${timeSlot}</span>
+                    </p>
+                </div>
+                ${statusHtml}
+            `;
+
+            // Hide all results first
+            document.querySelectorAll('.result-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            singleResult.style.display = 'block';
+        }
+
+        // Display all faculty results
+        function displayAllResults(day, timeSlot, results) {
+            const freeFaculty = results.filter(r => r.availability.status === 'free');
+            const busyFaculty = results.filter(r => r.availability.status === 'busy');
+
+            // Update free faculty content
+            const freeContent = document.getElementById('freeFactoryContent');
+            if (freeFaculty.length === 0) {
+                freeContent.innerHTML = '<p class="text-muted">No faculty available during this time slot</p>';
+            } else {
+                freeContent.innerHTML = `
+                    <p class="text-muted mb-3">Faculty available on ${day} during ${timeSlot}:</p>
+                    <div class="list-group">
+                        ${freeFaculty.map(item => `
+                            <div class="list-group-item faculty-card">
+                                <i class="fas fa-user-check text-success me-2"></i>
+                                ${item.faculty}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Update busy faculty content
+            const busyContent = document.getElementById('busyFacultyContent');
+            if (busyFaculty.length === 0) {
+                busyContent.innerHTML = '<p class="text-muted">All faculty are free during this time slot</p>';
+            } else {
+                busyContent.innerHTML = `
+                    <p class="text-muted mb-3">Faculty busy on ${day} during ${timeSlot}:</p>
+                    <div class="list-group">
+                        ${busyFaculty.map(item => `
+                            <div class="list-group-item faculty-card busy">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <i class="fas fa-user-times text-danger me-2"></i>
+                                        <strong>${item.faculty}</strong>
+                                    </div>
+                                    <div class="text-end small">
+                                        <span class="badge bg-primary me-1">${item.availability.details?.division || 'N/A'}</span><br>
+                                        <span class="badge bg-info me-1">${item.availability.details?.subject || 'N/A'}</span><br>
+                                        <span class="badge bg-secondary">${item.availability.details?.location || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Hide all results first
+            document.querySelectorAll('.result-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            allResults.style.display = 'block';
+        }
+
+        // Utility functions
+        function showError(message) {
+            fileStatus.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+            `;
+        }
+
+        function showSuccess(message) {
+            fileStatus.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+        });
+    </script>
+</body>
+</html>
