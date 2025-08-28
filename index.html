@@ -1,217 +1,739 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faculty Availability Checker</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SheetJS for Excel parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .upload-area {
-            border: 2px dashed var(--bs-border-color);
-            border-radius: 8px;
-            padding: 2rem;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-bg: #0f1419;
+            --card-bg: #1a202c;
+            --surface-bg: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --border-color: #4a5568;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes backgroundShift {
+            0% { transform: translate(-10px, -10px) rotate(0deg); }
+            100% { transform: translate(10px, 10px) rotate(1deg); }
+        }
+
+        /* Header Section */
+        .hero-section {
             text-align: center;
-            transition: border-color 0.3s ease;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: titleFloat 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Glass Card Effect */
+        .glass-card {
+            background: rgba(26, 32, 44, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            margin-bottom: 3rem;
+        }
+
+        .upload-area {
+            background: linear-gradient(145deg, rgba(45, 55, 72, 0.8), rgba(26, 32, 44, 0.8));
+            border: 2px dashed rgba(102, 126, 234, 0.5);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            animation: rotate 6s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .upload-area:hover {
+            border-color: rgba(102, 126, 234, 0.8);
+            background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            border-color: rgba(75, 222, 151, 0.8);
+            background: linear-gradient(145deg, rgba(75, 222, 151, 0.1), rgba(56, 178, 172, 0.1));
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .file-requirements {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Controls Section */
+        .controls-section {
+            margin-bottom: 3rem;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(45, 55, 72, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
             cursor: pointer;
         }
-        
-        .upload-area:hover {
-            border-color: var(--bs-primary);
+
+        .form-select:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.8);
+            background: rgba(45, 55, 72, 1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
-        
-        .upload-area.dragover {
-            border-color: var(--bs-success);
-            background-color: rgba(var(--bs-success-rgb), 0.1);
+
+        .form-select::after {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
         }
-        
+
+        /* Custom Dropdown Arrow */
+        .form-group::after {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            top: 3rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            font-size: 0.8rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 8px 32px rgba(240, 147, 251, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 3rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Status Cards */
+        .status-card {
+            background: rgba(26, 32, 44, 0.8);
+            border-radius: 20px;
+            padding: 2rem;
+            border-left: 6px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .status-free {
+            border-left-color: #4facfe;
+            background: linear-gradient(145deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.05));
+        }
+
+        .status-busy {
+            border-left-color: #fa709a;
+            background: linear-gradient(145deg, rgba(250, 112, 154, 0.1), rgba(254, 225, 64, 0.05));
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-icon {
+            font-size: 2.5rem;
+            margin-right: 1rem;
+        }
+
+        .status-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .status-free .status-icon {
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-busy .status-icon {
+            background: var(--danger-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Faculty Lists */
+        .faculty-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
         .faculty-card {
-            border-left: 4px solid var(--bs-success);
+            background: rgba(45, 55, 72, 0.6);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .faculty-card.busy {
-            border-left-color: var(--bs-danger);
+
+        .faculty-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
         }
-        
-        .time-slot-badge {
-            font-family: monospace;
+
+        .faculty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .faculty-card.busy::before {
+            background: var(--danger-gradient);
+        }
+
+        .faculty-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .faculty-name i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .faculty-details {
+            color: var(--text-secondary);
             font-size: 0.9rem;
+            line-height: 1.5;
         }
-        
+
+        .detail-badge {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+            font-weight: 500;
+        }
+
+        /* Loading States */
         .loading-spinner {
             display: none;
+            text-align: center;
+            padding: 2rem;
         }
-        
-        .result-section {
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Success Message */
+        .success-message {
+            background: linear-gradient(145deg, rgba(75, 222, 151, 0.1), rgba(56, 178, 172, 0.05));
+            border: 1px solid rgba(75, 222, 151, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: #4bde97;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .success-message i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(145deg, rgba(250, 112, 154, 0.1), rgba(254, 225, 64, 0.05));
+            border: 1px solid rgba(250, 112, 154, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: #fa709a;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        /* Hidden Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .faculty-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+        }
+
+        /* Custom File Input */
+        input[type="file"] {
             display: none;
-        }
-        
-        .status-free {
-            color: var(--bs-success);
-        }
-        
-        .status-busy {
-            color: var(--bs-danger);
         }
     </style>
 </head>
 <body>
-    <div class="container py-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="display-4 text-center mb-2">
-                    <i class="fas fa-calendar-check me-3"></i>
-                    Faculty Availability Checker
-                </h1>
-                <p class="text-center text-muted">Upload timetable and check faculty availability</p>
-            </div>
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">
+                <i class="fas fa-calendar-check"></i>
+                Faculty Availability
+            </h1>
+            <p class="hero-subtitle">
+                Smart scheduling made simple - Upload, analyze, and discover faculty availability instantly
+            </p>
         </div>
+    </div>
 
-        <!-- File Upload Section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-upload me-2"></i>
-                            Upload Timetable
-                        </h5>
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="glass-card">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <div class="card-body">
-                        <div class="upload-area" id="uploadArea">
-                            <i class="fas fa-file-excel fa-3x text-muted mb-3"></i>
-                            <h5>Drop Excel file here or click to browse</h5>
-                            <p class="text-muted">Supported format: .xlsx, .xls</p>
-                            <p class="small text-muted">Required columns: Faculty | Day | Start Time | End Time | Division | Subject | Location</p>
-                        </div>
-                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
-                        
-                        <div class="loading-spinner mt-3" id="loadingSpinner">
-                            <div class="d-flex align-items-center">
-                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                                <span>Processing Excel file...</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3" id="fileStatus"></div>
+                    <div class="upload-text">Drop your Excel file here</div>
+                    <div class="upload-subtext">or click to browse from your device</div>
+                    
+                    <div class="file-requirements">
+                        <strong>Required columns:</strong> Faculty | Day | Start Time | End Time | Division | Subject | Location
+                        <br>
+                        <strong>Supported formats:</strong> .xlsx, .xls
                     </div>
                 </div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls">
+                
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <div>Processing your timetable...</div>
+                </div>
+                
+                <div id="fileStatus"></div>
             </div>
         </div>
 
-        <!-- Search Interface -->
-        <div class="row mb-4" id="searchInterface" style="display: none;">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-search me-2"></i>
-                            Check Availability
-                        </h5>
+        <!-- Controls Section -->
+        <div class="controls-section hidden" id="controlsSection">
+            <div class="glass-card">
+                <div style="padding: 2rem;">
+                    <h3 style="margin-bottom: 2rem; text-align: center; font-size: 1.5rem;">
+                        <i class="fas fa-search" style="margin-right: 0.5rem;"></i>
+                        Check Availability
+                    </h3>
+                    
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="daySelect">
+                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem;"></i>
+                                Select Day
+                            </label>
+                            <select class="form-select" id="daySelect">
+                                <option value="">Choose a day</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="timeSlotSelect">
+                                <i class="fas fa-clock" style="margin-right: 0.5rem;"></i>
+                                Select Time Slot
+                            </label>
+                            <select class="form-select" id="timeSlotSelect">
+                                <option value="">Choose time slot</option>
+                                <option value="09:00-09:55">09:00 – 09:55</option>
+                                <option value="09:55-10:50">09:55 – 10:50</option>
+                                <option value="10:50-11:45">10:50 – 11:45</option>
+                                <option value="11:45-12:40">11:45 – 12:40</option>
+                                <option value="12:40-01:35">12:40 – 01:35</option>
+                                <option value="01:35-02:25">01:35 – 02:25</option>
+                                <option value="02:25-03:15">02:25 – 03:15</option>
+                                <option value="03:15-04:05">03:15 – 04:05</option>
+                                <option value="04:05-04:55">04:05 – 04:55</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="facultySelect">
+                                <i class="fas fa-user-tie" style="margin-right: 0.5rem;"></i>
+                                Select Faculty (Optional)
+                            </label>
+                            <select class="form-select" id="facultySelect">
+                                <option value="">All Faculty</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="daySelect" class="form-label">Day</label>
-                                <select class="form-select" id="daySelect">
-                                    <option value="">Select Day</option>
-                                    <option value="Monday">Monday</option>
-                                    <option value="Tuesday">Tuesday</option>
-                                    <option value="Wednesday">Wednesday</option>
-                                    <option value="Thursday">Thursday</option>
-                                    <option value="Friday">Friday</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="timeSlotSelect" class="form-label">Time Slot</label>
-                                <select class="form-select" id="timeSlotSelect">
-                                    <option value="">Select Time Slot</option>
-                                    <option value="09:00-09:55">09:00 – 09:55</option>
-                                    <option value="09:55-10:50">09:55 – 10:50</option>
-                                    <option value="10:50-11:45">10:50 – 11:45</option>
-                                    <option value="11:45-12:40">11:45 – 12:40</option>
-                                    <option value="12:40-01:35">12:40 – 01:35</option>
-                                    <option value="01:35-02:25">01:35 – 02:25</option>
-                                    <option value="02:25-03:15">02:25 – 03:15</option>
-                                    <option value="03:15-04:05">03:15 – 04:05</option>
-                                    <option value="04:05-04:55">04:05 – 04:55</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="facultySelect" class="form-label">Faculty (Optional)</label>
-                                <select class="form-select" id="facultySelect">
-                                    <option value="">All Faculty</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <button class="btn btn-primary me-2" id="checkSingleBtn" disabled>
-                                <i class="fas fa-user me-1"></i>
-                                Check Single Faculty
-                            </button>
-                            <button class="btn btn-secondary" id="checkAllBtn" disabled>
-                                <i class="fas fa-users me-1"></i>
-                                Check All Faculty
-                            </button>
-                        </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="checkSingleBtn" disabled>
+                            <i class="fas fa-user-check" style="margin-right: 0.5rem;"></i>
+                            Check Single Faculty
+                        </button>
+                        <button class="btn btn-secondary" id="checkAllBtn" disabled>
+                            <i class="fas fa-users" style="margin-right: 0.5rem;"></i>
+                            Check All Faculty
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Results Section -->
-        <div class="row" id="resultsSection">
+        <div class="results-section" id="resultsSection">
             <!-- Single Faculty Result -->
-            <div class="col-12 mb-4 result-section" id="singleResult">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-user me-2"></i>
-                            Faculty Availability
-                        </h5>
-                    </div>
-                    <div class="card-body" id="singleResultContent">
-                        <!-- Single faculty result will be displayed here -->
+            <div class="hidden" id="singleResult">
+                <div class="glass-card">
+                    <div style="padding: 2rem;">
+                        <h3 style="margin-bottom: 2rem; text-align: center; font-size: 1.5rem;">
+                            <i class="fas fa-user-check" style="margin-right: 0.5rem;"></i>
+                            Faculty Status
+                        </h3>
+                        <div id="singleResultContent"></div>
                     </div>
                 </div>
             </div>
 
             <!-- All Faculty Results -->
-            <div class="col-12 result-section" id="allResults">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header bg-success">
-                                <h5 class="card-title mb-0 text-white">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    Free Faculty
-                                </h5>
+            <div class="hidden" id="allResults">
+                <div class="results-grid">
+                    <div class="glass-card">
+                        <div class="status-card status-free">
+                            <div class="status-header">
+                                <i class="fas fa-check-circle status-icon"></i>
+                                <h3 class="status-title">Available Faculty</h3>
                             </div>
-                            <div class="card-body" id="freeFactoryContent">
-                                <!-- Free faculty list will be displayed here -->
+                            <div id="freeFactoryContent">
+                                <!-- Free faculty will be displayed here -->
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header bg-danger">
-                                <h5 class="card-title mb-0 text-white">
-                                    <i class="fas fa-times-circle me-2"></i>
-                                    Busy Faculty
-                                </h5>
+
+                    <div class="glass-card">
+                        <div class="status-card status-busy">
+                            <div class="status-header">
+                                <i class="fas fa-times-circle status-icon"></i>
+                                <h3 class="status-title">Busy Faculty</h3>
                             </div>
-                            <div class="card-body" id="busyFacultyContent">
-                                <!-- Busy faculty list will be displayed here -->
+                            <div id="busyFacultyContent">
+                                <!-- Busy faculty will be displayed here -->
                             </div>
                         </div>
                     </div>
@@ -219,9 +741,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Global variables
@@ -246,7 +765,7 @@
         const fileInput = document.getElementById('fileInput');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const fileStatus = document.getElementById('fileStatus');
-        const searchInterface = document.getElementById('searchInterface');
+        const controlsSection = document.getElementById('controlsSection');
         const facultySelect = document.getElementById('facultySelect');
         const daySelect = document.getElementById('daySelect');
         const timeSlotSelect = document.getElementById('timeSlotSelect');
@@ -379,7 +898,7 @@
             
             populateFacultyDropdown();
             showSuccess(`Successfully loaded ${timetableData.length} records for ${facultyList.length} faculty members`);
-            searchInterface.style.display = 'block';
+            controlsSection.classList.remove('hidden');
             updateButtonStates();
         }
 
@@ -476,50 +995,66 @@
             let statusHtml = '';
             if (availability.status === 'free') {
                 statusHtml = `
-                    <div class="alert alert-success">
-                        <h5 class="status-free">
-                            <i class="fas fa-check-circle me-2"></i>
-                            FREE
-                        </h5>
-                        <p class="mb-0">${faculty} is available on ${day} during ${timeSlot}</p>
+                    <div class="status-card status-free">
+                        <div class="status-header">
+                            <i class="fas fa-check-circle status-icon"></i>
+                            <div>
+                                <h3 class="status-title">FREE</h3>
+                                <p style="margin: 0; color: var(--text-secondary);">${faculty} is available</p>
+                            </div>
+                        </div>
+                        <div style="background: rgba(79, 172, 254, 0.1); padding: 1rem; border-radius: 12px; margin-top: 1rem;">
+                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem; color: #4facfe;"></i>
+                                <strong>Day:</strong> <span style="margin-left: 0.5rem;">${day}</span>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <i class="fas fa-clock" style="margin-right: 0.5rem; color: #4facfe;"></i>
+                                <strong>Time:</strong> <span style="margin-left: 0.5rem; font-family: monospace;">${timeSlot}</span>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (availability.status === 'busy') {
                 statusHtml = `
-                    <div class="alert alert-danger">
-                        <h5 class="status-busy">
-                            <i class="fas fa-times-circle me-2"></i>
-                            BUSY
-                        </h5>
-                        <p class="mb-2">${faculty} is busy on ${day} during ${timeSlot}</p>
-                        <div class="mt-2">
-                            <strong>Details:</strong><br>
-                            <span class="badge bg-primary me-1">${availability.details.division || 'N/A'}</span>
-                            <span class="badge bg-info me-1">${availability.details.subject || 'N/A'}</span>
-                            <span class="badge bg-secondary">${availability.details.location || 'N/A'}</span>
+                    <div class="status-card status-busy">
+                        <div class="status-header">
+                            <i class="fas fa-times-circle status-icon"></i>
+                            <div>
+                                <h3 class="status-title">BUSY</h3>
+                                <p style="margin: 0; color: var(--text-secondary);">${faculty} is occupied</p>
+                            </div>
+                        </div>
+                        <div style="background: rgba(250, 112, 154, 0.1); padding: 1rem; border-radius: 12px; margin-top: 1rem;">
+                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem; color: #fa709a;"></i>
+                                <strong>Day:</strong> <span style="margin-left: 0.5rem;">${day}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                <i class="fas fa-clock" style="margin-right: 0.5rem; color: #fa709a;"></i>
+                                <strong>Time:</strong> <span style="margin-left: 0.5rem; font-family: monospace;">${timeSlot}</span>
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <strong>Engagement Details:</strong>
+                                <div style="margin-top: 0.5rem;">
+                                    <span class="detail-badge">${availability.details.division || 'N/A'}</span>
+                                    <span class="detail-badge">${availability.details.subject || 'N/A'}</span>
+                                    <span class="detail-badge">${availability.details.location || 'N/A'}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
             }
 
-            content.innerHTML = `
-                <div class="mb-3">
-                    <h6>Query Details:</h6>
-                    <p class="text-muted mb-2">
-                        <strong>Faculty:</strong> ${faculty}<br>
-                        <strong>Day:</strong> ${day}<br>
-                        <strong>Time Slot:</strong> <span class="time-slot-badge badge bg-dark">${timeSlot}</span>
-                    </p>
-                </div>
-                ${statusHtml}
-            `;
+            content.innerHTML = statusHtml;
 
             // Hide all results first
-            document.querySelectorAll('.result-section').forEach(section => {
-                section.style.display = 'none';
+            document.querySelectorAll('#resultsSection > div').forEach(section => {
+                section.classList.add('hidden');
             });
             
-            singleResult.style.display = 'block';
+            singleResult.classList.remove('hidden');
         }
 
         // Display all faculty results
@@ -530,15 +1065,29 @@
             // Update free faculty content
             const freeContent = document.getElementById('freeFactoryContent');
             if (freeFaculty.length === 0) {
-                freeContent.innerHTML = '<p class="text-muted">No faculty available during this time slot</p>';
+                freeContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        <i class="fas fa-user-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No faculty available during this time slot</p>
+                        <p style="font-size: 0.9rem;">${day} • ${timeSlot}</p>
+                    </div>
+                `;
             } else {
                 freeContent.innerHTML = `
-                    <p class="text-muted mb-3">Faculty available on ${day} during ${timeSlot}:</p>
-                    <div class="list-group">
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <p style="color: var(--text-secondary);">Available on <strong>${day}</strong> during <strong style="font-family: monospace;">${timeSlot}</strong></p>
+                        <div style="font-size: 2rem; font-weight: bold; color: #4facfe;">${freeFaculty.length}</div>
+                    </div>
+                    <div class="faculty-grid">
                         ${freeFaculty.map(item => `
-                            <div class="list-group-item faculty-card">
-                                <i class="fas fa-user-check text-success me-2"></i>
-                                ${item.faculty}
+                            <div class="faculty-card">
+                                <div class="faculty-name">
+                                    <i class="fas fa-user-check" style="color: #4facfe;"></i>
+                                    ${item.faculty}
+                                </div>
+                                <div class="faculty-details">
+                                    <span class="detail-badge" style="background: rgba(79, 172, 254, 0.2);">Available</span>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -548,22 +1097,31 @@
             // Update busy faculty content
             const busyContent = document.getElementById('busyFacultyContent');
             if (busyFaculty.length === 0) {
-                busyContent.innerHTML = '<p class="text-muted">All faculty are free during this time slot</p>';
+                busyContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        <i class="fas fa-user-check" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>All faculty are free during this time slot</p>
+                        <p style="font-size: 0.9rem;">${day} • ${timeSlot}</p>
+                    </div>
+                `;
             } else {
                 busyContent.innerHTML = `
-                    <p class="text-muted mb-3">Faculty busy on ${day} during ${timeSlot}:</p>
-                    <div class="list-group">
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <p style="color: var(--text-secondary);">Busy on <strong>${day}</strong> during <strong style="font-family: monospace;">${timeSlot}</strong></p>
+                        <div style="font-size: 2rem; font-weight: bold; color: #fa709a;">${busyFaculty.length}</div>
+                    </div>
+                    <div class="faculty-grid">
                         ${busyFaculty.map(item => `
-                            <div class="list-group-item faculty-card busy">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <i class="fas fa-user-times text-danger me-2"></i>
-                                        <strong>${item.faculty}</strong>
-                                    </div>
-                                    <div class="text-end small">
-                                        <span class="badge bg-primary me-1">${item.availability.details?.division || 'N/A'}</span><br>
-                                        <span class="badge bg-info me-1">${item.availability.details?.subject || 'N/A'}</span><br>
-                                        <span class="badge bg-secondary">${item.availability.details?.location || 'N/A'}</span>
+                            <div class="faculty-card busy">
+                                <div class="faculty-name">
+                                    <i class="fas fa-user-times" style="color: #fa709a;"></i>
+                                    ${item.faculty}
+                                </div>
+                                <div class="faculty-details">
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span class="detail-badge" style="background: rgba(250, 112, 154, 0.2);">${item.availability.details.division || 'N/A'}</span>
+                                        <span class="detail-badge" style="background: rgba(254, 225, 64, 0.2);">${item.availability.details.subject || 'N/A'}</span>
+                                        <span class="detail-badge" style="background: rgba(160, 174, 192, 0.2);">${item.availability.details.location || 'N/A'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -573,27 +1131,28 @@
             }
 
             // Hide all results first
-            document.querySelectorAll('.result-section').forEach(section => {
-                section.style.display = 'none';
+            document.querySelectorAll('#resultsSection > div').forEach(section => {
+                section.classList.add('hidden');
             });
             
-            allResults.style.display = 'block';
+            allResults.classList.remove('hidden');
         }
 
-        // Utility functions
-        function showError(message) {
+        // Show success message
+        function showSuccess(message) {
             fileStatus.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
                     ${message}
                 </div>
             `;
         }
 
-        function showSuccess(message) {
+        // Show error message
+        function showError(message) {
             fileStatus.innerHTML = `
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle me-2"></i>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
                     ${message}
                 </div>
             `;
