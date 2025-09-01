@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faculty Availability Checker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -13,6 +12,8 @@
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --highlight-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             --dark-bg: #0f1419;
             --card-bg: #1a202c;
             --surface-bg: #2d3748;
@@ -111,87 +112,6 @@
             box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* Upload Section */
-        .upload-section {
-            margin-bottom: 3rem;
-        }
-
-        .upload-area {
-            background: linear-gradient(145deg, rgba(45, 55, 72, 0.8), rgba(26, 32, 44, 0.8));
-            border: 2px dashed rgba(102, 126, 234, 0.5);
-            border-radius: 20px;
-            padding: 4rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-area::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: rotate 6s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .upload-area:hover {
-            border-color: rgba(102, 126, 234, 0.8);
-            background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            transform: scale(1.02);
-        }
-
-        .upload-area.dragover {
-            border-color: rgba(75, 222, 151, 0.8);
-            background: linear-gradient(145deg, rgba(75, 222, 151, 0.1), rgba(56, 178, 172, 0.1));
-        }
-
-        .upload-icon {
-            font-size: 4rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1.5rem;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
-        }
-
-        .upload-text {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-subtext {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .file-requirements {
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
         /* Controls Section */
         .controls-section {
             margin-bottom: 3rem;
@@ -199,7 +119,7 @@
 
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
@@ -234,16 +154,6 @@
             border-color: rgba(102, 126, 234, 0.8);
             background: rgba(45, 55, 72, 1);
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-select::after {
-            content: '▼';
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            pointer-events: none;
         }
 
         /* Custom Dropdown Arrow */
@@ -316,10 +226,15 @@
             box-shadow: 0 12px 40px rgba(240, 147, 251, 0.4);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: #8b4513;
+            box-shadow: 0 8px 32px rgba(255, 236, 210, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(255, 236, 210, 0.4);
         }
 
         /* Results Section */
@@ -331,6 +246,13 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 2rem;
+        }
+
+        /* Single column for single faculty */
+        .results-grid.single-column {
+            grid-template-columns: 1fr;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         /* Status Cards */
@@ -413,754 +335,1786 @@
             overflow: hidden;
         }
 
-        .faculty-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-        }
-
         .faculty-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
-            border-color: rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(45, 55, 72, 0.8);
         }
 
-        .faculty-card.busy::before {
-            background: var(--danger-gradient);
+        /* Highlighted Faculty Card (for less than 5 slots) */
+        .faculty-card.highlighted {
+            background: linear-gradient(145deg, rgba(168, 237, 234, 0.15), rgba(254, 214, 227, 0.15));
+            border: 2px solid rgba(168, 237, 234, 0.5);
+            box-shadow: 0 8px 32px rgba(168, 237, 234, 0.2);
+        }
+
+        .faculty-card.highlighted:hover {
+            border-color: rgba(168, 237, 234, 0.8);
+            background: linear-gradient(145deg, rgba(168, 237, 234, 0.25), rgba(254, 214, 227, 0.25));
+            box-shadow: 0 12px 40px rgba(168, 237, 234, 0.3);
         }
 
         .faculty-name {
             font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .faculty-name i {
-            margin-right: 0.5rem;
-            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
         .faculty-details {
             color: var(--text-secondary);
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
-        .detail-badge {
+        .faculty-status {
             display: inline-block;
-            background: rgba(102, 126, 234, 0.2);
-            color: var(--text-primary);
             padding: 0.25rem 0.75rem;
-            border-radius: 12px;
+            border-radius: 20px;
             font-size: 0.8rem;
-            margin: 0.25rem 0.25rem 0.25rem 0;
             font-weight: 500;
+            margin-top: 0.5rem;
         }
 
-        /* Loading States */
-        .loading-spinner {
+        .status-free-badge {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.2));
+            color: #4facfe;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+        }
+
+        .status-busy-badge {
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.2), rgba(254, 225, 64, 0.2));
+            color: #fa709a;
+            border: 1px solid rgba(250, 112, 154, 0.3);
+        }
+
+        /* Single Faculty Display */
+        .single-faculty-result {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(45, 55, 72, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-status {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .result-status.free {
+            color: #4facfe;
+        }
+
+        .result-status.busy {
+            color: #fa709a;
+        }
+
+        .status-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .faculty-name-large {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .status-text {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-section {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .engagement-details {
+            background: rgba(250, 112, 154, 0.1);
+            border: 1px solid rgba(250, 112, 154, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Low workload badge */
+        .low-workload-badge {
+            background: var(--highlight-gradient);
+            color: #065f46;
+            border: 1px solid rgba(168, 237, 234, 0.5);
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Loading Animation */
+        .loading {
             display: none;
             text-align: center;
             padding: 2rem;
         }
 
-        .spinner {
+        .loading-spinner {
             width: 50px;
             height: 50px;
             border: 3px solid rgba(102, 126, 234, 0.3);
-            border-top: 3px solid #667eea;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
             margin: 0 auto 1rem;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Success Message */
-        .success-message {
-            background: linear-gradient(145deg, rgba(75, 222, 151, 0.1), rgba(56, 178, 172, 0.05));
-            border: 1px solid rgba(75, 222, 151, 0.3);
+        /* Faculty Selection Note */
+        .faculty-note {
+            background: rgba(255, 236, 210, 0.1);
+            border: 1px solid rgba(255, 236, 210, 0.3);
             border-radius: 12px;
-            padding: 1rem 1.5rem;
-            color: #4bde97;
-            margin-top: 1rem;
-            display: flex;
-            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #ffa726;
+            font-size: 0.9rem;
+            display: none;
         }
 
-        .success-message i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-        }
-
-        /* Error Message */
-        .error-message {
-            background: linear-gradient(145deg, rgba(250, 112, 154, 0.1), rgba(254, 225, 64, 0.05));
-            border: 1px solid rgba(250, 112, 154, 0.3);
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            color: #fa709a;
-            margin-top: 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .error-message i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-        }
-
-        /* Hidden Classes */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Mobile Responsiveness */
+        /* Responsive Design */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.5rem;
             }
-
+            
             .controls-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
             }
-
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .faculty-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
             }
-
+            
             .btn {
                 width: 100%;
                 max-width: 300px;
             }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .faculty-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .upload-area {
-                padding: 2rem 1rem;
-            }
-
-            .upload-icon {
-                font-size: 3rem;
-            }
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
 
-        ::-webkit-scrollbar-track {
-            background: var(--dark-bg);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 4px;
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2, #667eea);
-        }
-
-        /* Custom File Input */
-        input[type="file"] {
-            display: none;
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="hero-section">
-        <div class="container">
-            <h1 class="hero-title">
-                <i class="fas fa-calendar-check"></i>
-                Faculty Availability
-            </h1>
-            <p class="hero-subtitle">
-                Smart scheduling made simple - Upload, analyze, and discover faculty availability instantly
-            </p>
-        </div>
+        <h1 class="hero-title">Faculty Availability Checker</h1>
+        <p class="hero-subtitle">Find which faculty members are free at any given time</p>
     </div>
 
     <div class="container">
-        <!-- Upload Section -->
-        <div class="upload-section">
-            <div class="glass-card">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="upload-text">Drop your Excel file here</div>
-                    <div class="upload-subtext">or click to browse from your device</div>
-                    
-                    <div class="file-requirements">
-                        <strong>Required columns:</strong> Faculty | Day | Start Time | End Time | Division | Subject | Location
-                        <br>
-                        <strong>Supported formats:</strong> .xlsx, .xls
-                    </div>
+        <!-- Controls Section -->
+        <div class="glass-card controls-section">
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label class="form-label" for="facultySelect">Select Faculty</label>
+                    <select class="form-select" id="facultySelect">
+                        <option value="">Select a faculty</option>
+                        <option value="AC(Ms. Anjali Chopra)">AC(Ms. Anjali Chopra)</option>
+                        <option value="AP (Dr. Ashwin  Patani)">AP (Dr. Ashwin  Patani)</option>
+                        <option value="BP(Ms. Babita Patel)">BP(Ms. Babita Patel)</option>
+                        <option value="DJ (Ms. Dipali Jitiya)">DJ (Ms. Dipali Jitiya)</option>
+                        <option value="DM (Mr. Divyang Makwana)">DM (Mr. Divyang Makwana)</option>
+                        <option value="DP (Mr. Deep Paun)">DP (Mr. Deep Paun)</option>
+                        <option value="FG (Ms. Foram Gohel)">FG (Ms. Foram Gohel)</option>
+                        <option value="HM (Mr. Hiren Mer)">HM (Mr. Hiren Mer)</option>
+                        <option value="KJ (Dr. Kaushal Jani)">KJ (Dr. Kaushal Jani)</option>
+                        <option value="KR (Mr. Kelvin Rathod) (Visiting)">KR (Mr. Kelvin Rathod) (Visiting)</option>
+                        <option value="MB (Ms. Madhvi Bera)">MB (Ms. Madhvi Bera)</option>
+                        <option value="Mr. Abhishek Dabhi (Visiting)">Mr. Abhishek Dabhi (Visiting)</option>
+                        <option value="NB (Ms. Namrata Bharambhatt)">NB (Ms. Namrata Bharambhatt)</option>
+                        <option value="PN (Mr. Parth Nirmal)">PN (Mr. Parth Nirmal)</option>
+                        <option value="PS(Mr.Prejesh Pal Singh)">PS(Mr.Prejesh Pal Singh)</option>
+                        <option value="RH (Ms. Riddhi Harsora)">RH (Ms. Riddhi Harsora)</option>
+                        <option value="RM (Ms. Ruchi Mishra)">RM (Ms. Ruchi Mishra)</option>
+                        <option value="RP (Ms. Ruchi Patel)">RP (Ms. Ruchi Patel)</option>
+                        <option value="SJ(Ms. Shruti Jaiswal)">SJ(Ms. Shruti Jaiswal)</option>
+                        <option value="SR (Ms. Sweta Rathod)">SR (Ms. Sweta Rathod)</option>
+                        <option value="TD (Ms. Toral Desai)">TD (Ms. Toral Desai)</option>
+                        <option value="UR (Ms. Urvi Rabara)">UR (Ms. Urvi Rabara)</option>
+                        <option value="VR (Ms. Vrushali Rajvanshi)">VR (Ms. Vrushali Rajvanshi)</option>
+                        <option value="VS (Mr. Vastal Suthar)">VS (Mr. Vastal Suthar)</option>
+                        <option value="ZK (Ms. Zarna Kotak)">ZK (Ms. Zarna Kotak)</option>
+                    </select>
                 </div>
-                <input type="file" id="fileInput" accept=".xlsx,.xls">
                 
-                <div class="loading-spinner" id="loadingSpinner">
-                    <div class="spinner"></div>
-                    <div>Processing your timetable...</div>
+                <div class="form-group">
+                    <label class="form-label" for="daySelect">Select Day</label>
+                    <select class="form-select" id="daySelect">
+                        <option value="">Select a day</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                    </select>
                 </div>
                 
-                <div id="fileStatus"></div>
+                <div class="form-group">
+                    <label class="form-label" for="timeSelect">Select Time Slot</label>
+                    <select class="form-select" id="timeSelect">
+                        <option value="">Select a time slot</option>
+                        <option value="09:00">09:00 - 09:55</option>
+                        <option value="09:55">09:55 - 10:50</option>
+                        <option value="10:50">10:50 - 11:45</option>
+                        <option value="11:45">11:45 - 12:40</option>
+                        <option value="12:40">12:40 - 01:35</option>
+                        <option value="01:35">01:35 - 02:25</option>
+                        <option value="02:25">02:25 - 03:15</option>
+                        <option value="03:15">03:15 - 04:05</option>
+                        <option value="04:05">04:05 - 04:55</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="faculty-note" id="facultyNote">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> For single faculty check, please select a faculty from the dropdown above.
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="checkSingleFaculty()">
+                    <i class="fas fa-user"></i> Check Single Faculty
+                </button>
+                <button class="btn btn-warning" onclick="checkAllFaculty()">
+                    <i class="fas fa-users"></i> Check All Faculty
+                </button>
+                <button class="btn btn-secondary" onclick="clearResults()">
+                    <i class="fas fa-refresh"></i> Clear Results
+                </button>
             </div>
         </div>
 
-        <!-- Controls Section -->
-        <div class="controls-section hidden" id="controlsSection">
-            <div class="glass-card">
-                <div style="padding: 2rem;">
-                    <h3 style="margin-bottom: 2rem; text-align: center; font-size: 1.5rem;">
-                        <i class="fas fa-search" style="margin-right: 0.5rem;"></i>
-                        Check Availability
-                    </h3>
-                    
-                    <div class="controls-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="daySelect">
-                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem;"></i>
-                                Select Day
-                            </label>
-                            <select class="form-select" id="daySelect">
-                                <option value="">Choose a day</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="timeSlotSelect">
-                                <i class="fas fa-clock" style="margin-right: 0.5rem;"></i>
-                                Select Time Slot
-                            </label>
-                            <select class="form-select" id="timeSlotSelect">
-                                <option value="">Choose time slot</option>
-                                <option value="09:00-09:55">09:00 – 09:55</option>
-                                <option value="09:55-10:50">09:55 – 10:50</option>
-                                <option value="10:50-11:45">10:50 – 11:45</option>
-                                <option value="11:45-12:40">11:45 – 12:40</option>
-                                <option value="12:40-01:35">12:40 – 01:35</option>
-                                <option value="01:35-02:25">01:35 – 02:25</option>
-                                <option value="02:25-03:15">02:25 – 03:15</option>
-                                <option value="03:15-04:05">03:15 – 04:05</option>
-                                <option value="04:05-04:55">04:05 – 04:55</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="facultySelect">
-                                <i class="fas fa-user-tie" style="margin-right: 0.5rem;"></i>
-                                Select Faculty (Optional)
-                            </label>
-                            <select class="form-select" id="facultySelect">
-                                <option value="">All Faculty</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" id="checkSingleBtn" disabled>
-                            <i class="fas fa-user-check" style="margin-right: 0.5rem;"></i>
-                            Check Single Faculty
-                        </button>
-                        <button class="btn btn-secondary" id="checkAllBtn" disabled>
-                            <i class="fas fa-users" style="margin-right: 0.5rem;"></i>
-                            Check All Faculty
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <!-- Loading Animation -->
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Checking faculty availability...</p>
         </div>
 
         <!-- Results Section -->
-        <div class="results-section" id="resultsSection">
-            <!-- Single Faculty Result -->
-            <div class="hidden" id="singleResult">
-                <div class="glass-card">
-                    <div style="padding: 2rem;">
-                        <h3 style="margin-bottom: 2rem; text-align: center; font-size: 1.5rem;">
-                            <i class="fas fa-user-check" style="margin-right: 0.5rem;"></i>
-                            Faculty Status
-                        </h3>
-                        <div id="singleResultContent"></div>
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-grid" id="resultsGrid">
+                <!-- Free Faculty -->
+                <div class="glass-card status-card status-free" id="freeCard">
+                    <div class="status-header">
+                        <i class="fas fa-check-circle status-icon"></i>
+                        <div>
+                            <h3 class="status-title">Available Faculty</h3>
+                            <p id="freeCount">0 faculty members are free</p>
+                        </div>
                     </div>
+                    <div class="faculty-grid" id="freeFacultyList"></div>
                 </div>
-            </div>
 
-            <!-- All Faculty Results -->
-            <div class="hidden" id="allResults">
-                <div class="results-grid">
-                    <div class="glass-card">
-                        <div class="status-card status-free">
-                            <div class="status-header">
-                                <i class="fas fa-check-circle status-icon"></i>
-                                <h3 class="status-title">Available Faculty</h3>
-                            </div>
-                            <div id="freeFactoryContent">
-                                <!-- Free faculty will be displayed here -->
-                            </div>
+                <!-- Busy Faculty -->
+                <div class="glass-card status-card status-busy" id="busyCard">
+                    <div class="status-header">
+                        <i class="fas fa-times-circle status-icon"></i>
+                        <div>
+                            <h3 class="status-title">Busy Faculty</h3>
+                            <p id="busyCount">0 faculty members are busy</p>
                         </div>
                     </div>
-
-                    <div class="glass-card">
-                        <div class="status-card status-busy">
-                            <div class="status-header">
-                                <i class="fas fa-times-circle status-icon"></i>
-                                <h3 class="status-title">Busy Faculty</h3>
-                            </div>
-                            <div id="busyFacultyContent">
-                                <!-- Busy faculty will be displayed here -->
-                            </div>
-                        </div>
-                    </div>
+                    <div class="faculty-grid" id="busyFacultyList"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
-        let timetableData = [];
-        let facultyList = [];
-
-        // Time slot mappings
-        const timeSlots = {
-            '09:00-09:55': { start: '09:00', end: '09:55' },
-            '09:55-10:50': { start: '09:55', end: '10:50' },
-            '10:50-11:45': { start: '10:50', end: '11:45' },
-            '11:45-12:40': { start: '11:45', end: '12:40' },
-            '12:40-01:35': { start: '12:40', end: '01:35' },
-            '01:35-02:25': { start: '01:35', end: '02:25' },
-            '02:25-03:15': { start: '02:25', end: '03:15' },
-            '03:15-04:05': { start: '03:15', end: '04:05' },
-            '04:05-04:55': { start: '04:05', end: '04:55' }
-        };
-
-        // DOM elements
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const fileStatus = document.getElementById('fileStatus');
-        const controlsSection = document.getElementById('controlsSection');
-        const facultySelect = document.getElementById('facultySelect');
-        const daySelect = document.getElementById('daySelect');
-        const timeSlotSelect = document.getElementById('timeSlotSelect');
-        const checkSingleBtn = document.getElementById('checkSingleBtn');
-        const checkAllBtn = document.getElementById('checkAllBtn');
-        const singleResult = document.getElementById('singleResult');
-        const allResults = document.getElementById('allResults');
-
-        // Initialize event listeners
-        function initializeEventListeners() {
-            // File upload area
-            uploadArea.addEventListener('click', () => fileInput.click());
-            uploadArea.addEventListener('dragover', handleDragOver);
-            uploadArea.addEventListener('dragleave', handleDragLeave);
-            uploadArea.addEventListener('drop', handleDrop);
+        // Parse CSV data optimized
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
             
-            // File input
-            fileInput.addEventListener('change', handleFileSelect);
-            
-            // Form controls
-            daySelect.addEventListener('change', updateButtonStates);
-            timeSlotSelect.addEventListener('change', updateButtonStates);
-            facultySelect.addEventListener('change', updateButtonStates);
-            
-            // Buttons
-            checkSingleBtn.addEventListener('click', checkSingleFaculty);
-            checkAllBtn.addEventListener('click', checkAllFaculty);
-        }
-
-        // Drag and drop handlers
-        function handleDragOver(e) {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        }
-
-        function handleDragLeave(e) {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        }
-
-        // File selection handler
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                handleFile(file);
-            }
-        }
-
-        // Process uploaded file
-        function handleFile(file) {
-            // Validate file type
-            const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
-                               'application/vnd.ms-excel'];
-            
-            if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
-                showError('Please upload a valid Excel file (.xlsx or .xls)');
-                return;
-            }
-
-            loadingSpinner.style.display = 'block';
-            fileStatus.innerHTML = '';
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // Get first worksheet
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    
-                    // Convert to JSON
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    processExcelData(jsonData);
-                    
-                } catch (error) {
-                    console.error('Error processing Excel file:', error);
-                    showError('Error processing Excel file. Please check the file format.');
-                } finally {
-                    loadingSpinner.style.display = 'none';
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length >= headers.length) {
+                    const entry = {};
+                    for (let j = 0; j < headers.length; j++) {
+                        entry[headers[j].trim()] = (values[j] || '').trim();
+                    }
+                    data.push(entry);
                 }
-            };
-            
-            reader.readAsArrayBuffer(file);
+            }
+            return data;
         }
 
-        // Process Excel data
-        function processExcelData(data) {
-            // Validate required columns
-            const requiredColumns = ['Faculty', 'Day', 'Start Time', 'End Time', 'Division', 'Subject', 'Location'];
+        // Embedded CSV data
+        const csvData = `Faculty,Day,Start Time,End Time,Division,Subject,Location
+KJ (Dr. Kaushal Jani),Monday,09:00,09:55,5CSE : A1,WT,LAB-3-BB
+KJ (Dr. Kaushal Jani),Monday,09:55,10:50,5CSE : A1,WT,LAB-3-BB
+KJ (Dr. Kaushal Jani),Monday,10:50,11:45,5CSE:A,WT,LH-B128
+KJ (Dr. Kaushal Jani),Monday,11:45,12:40,5CSE:C,WT,LH-5
+KJ (Dr. Kaushal Jani),Monday,12:40,01:35,,,
+KJ (Dr. Kaushal Jani),Monday,01:35,02:25,5CSE : C1,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Monday,02:25,03:15,5CSE : C1,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Monday,03:15,04:05,,,
+KJ (Dr. Kaushal Jani),Monday,04:05,04:55,,,
+KJ (Dr. Kaushal Jani),Tuesday,09:00,09:55,,,
+KJ (Dr. Kaushal Jani),Tuesday,09:55,10:50,,,
+KJ (Dr. Kaushal Jani),Tuesday,10:50,11:45,5CSE : C2,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Tuesday,11:45,12:40,5CSE : C2,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Tuesday,12:40,01:35,,,
+KJ (Dr. Kaushal Jani),Tuesday,01:35,02:25,5CSE:C,WT,LH-B528
+KJ (Dr. Kaushal Jani),Tuesday,02:25,03:15,,,
+KJ (Dr. Kaushal Jani),Tuesday,03:15,04:05,,,
+KJ (Dr. Kaushal Jani),Tuesday,04:05,04:55,,,
+KJ (Dr. Kaushal Jani),Wednesday,09:00,09:55,,,
+KJ (Dr. Kaushal Jani),Wednesday,09:55,10:50,5CSE:A,WT,LH-3
+KJ (Dr. Kaushal Jani),Wednesday,10:50,11:45,,,
+KJ (Dr. Kaushal Jani),Wednesday,11:45,12:40,,,
+KJ (Dr. Kaushal Jani),Wednesday,12:40,01:35,,,
+KJ (Dr. Kaushal Jani),Wednesday,01:35,02:25,5CSE : A2,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Wednesday,02:25,03:15,5CSE : A2,WT,LAB-4-BB
+KJ (Dr. Kaushal Jani),Wednesday,03:15,04:05,,,
+KJ (Dr. Kaushal Jani),Wednesday,04:05,04:55,,,
+KJ (Dr. Kaushal Jani),Thursday,09:00,09:55,,,
+KJ (Dr. Kaushal Jani),Thursday,09:55,10:50,,,
+KJ (Dr. Kaushal Jani),Thursday,10:50,11:45,,,
+KJ (Dr. Kaushal Jani),Thursday,11:45,12:40,5CSE:A,WT,LH-3
+KJ (Dr. Kaushal Jani),Thursday,12:40,01:35,,,
+KJ (Dr. Kaushal Jani),Thursday,01:35,02:25,,,
+KJ (Dr. Kaushal Jani),Thursday,02:25,03:15,,,
+KJ (Dr. Kaushal Jani),Thursday,03:15,04:05,,,
+KJ (Dr. Kaushal Jani),Thursday,04:05,04:55,,,
+KJ (Dr. Kaushal Jani),Friday,09:00,09:55,,,
+KJ (Dr. Kaushal Jani),Friday,09:55,10:50,,,
+KJ (Dr. Kaushal Jani),Friday,10:50,11:45,5CSE:C,WT,LH-6
+KJ (Dr. Kaushal Jani),Friday,11:45,12:40,,,
+KJ (Dr. Kaushal Jani),Friday,12:40,01:35,,,
+KJ (Dr. Kaushal Jani),Friday,01:35,02:25,,,
+KJ (Dr. Kaushal Jani),Friday,02:25,03:15,,,
+KJ (Dr. Kaushal Jani),Friday,03:15,04:05,,,
+KJ (Dr. Kaushal Jani),Friday,04:05,04:55,,,
+AP (Dr. Ashwin  Patani),Monday,09:00,09:55,5CSE:F,AMP,LH-6
+AP (Dr. Ashwin  Patani),Monday,09:55,10:50,,,
+AP (Dr. Ashwin  Patani),Monday,10:50,11:45,5CSE:C,AMP,LH-5
+AP (Dr. Ashwin  Patani),Monday,11:45,12:40,,,
+AP (Dr. Ashwin  Patani),Monday,12:40,01:35,,,
+AP (Dr. Ashwin  Patani),Monday,01:35,02:25,5CSE:F,AMP,LH-5
+AP (Dr. Ashwin  Patani),Monday,02:25,03:15,,,
+AP (Dr. Ashwin  Patani),Monday,03:15,04:05,,,
+AP (Dr. Ashwin  Patani),Monday,04:05,04:55,,,
+AP (Dr. Ashwin  Patani),Tuesday,09:00,09:55,5CSE : C2,AMP,LAB-B227-A-BB
+AP (Dr. Ashwin  Patani),Tuesday,09:55,10:50,5CSE : C2,AMP,LAB-B227-A-BB
+AP (Dr. Ashwin  Patani),Tuesday,10:50,11:45,5CSE:A,AMP,LH-3
+AP (Dr. Ashwin  Patani),Tuesday,11:45,12:40,,,
+AP (Dr. Ashwin  Patani),Tuesday,12:40,01:35,5CSE : A1,AMP,LAB-4-BB
+AP (Dr. Ashwin  Patani),Tuesday,01:35,02:25,5CSE : A1,AMP,LAB-4-BB
+AP (Dr. Ashwin  Patani),Tuesday,02:25,03:15,5CSE:A,AMP,LH-3
+AP (Dr. Ashwin  Patani),Tuesday,03:15,04:05,,,
+AP (Dr. Ashwin  Patani),Tuesday,04:05,04:55,,,
+AP (Dr. Ashwin  Patani),Wednesday,09:00,09:55,5CSE : F1,AMP,LAB-B226-BB
+AP (Dr. Ashwin  Patani),Wednesday,09:55,10:50,5CSE : F1,AMP,LAB-B226-BB
+AP (Dr. Ashwin  Patani),Wednesday,10:50,11:45,,,
+AP (Dr. Ashwin  Patani),Wednesday,11:45,12:40,,,
+AP (Dr. Ashwin  Patani),Wednesday,12:40,01:35,,,
+AP (Dr. Ashwin  Patani),Wednesday,01:35,02:25,5CSE:F,AMP,LH-5
+AP (Dr. Ashwin  Patani),Wednesday,02:25,03:15,,,
+AP (Dr. Ashwin  Patani),Wednesday,03:15,04:05,,,
+AP (Dr. Ashwin  Patani),Wednesday,04:05,04:55,,,
+AP (Dr. Ashwin  Patani),Thursday,09:00,09:55,5CSE : C1,AMP,LAB-B227-A-BB
+AP (Dr. Ashwin  Patani),Thursday,09:55,10:50,5CSE : C1,AMP,LAB-B227-A-BB
+AP (Dr. Ashwin  Patani),Thursday,10:50,11:45,,,
+AP (Dr. Ashwin  Patani),Thursday,11:45,12:40,,,
+AP (Dr. Ashwin  Patani),Thursday,12:40,01:35,,,
+AP (Dr. Ashwin  Patani),Thursday,01:35,02:25,5CSE:C,AMP,LH-5
+AP (Dr. Ashwin  Patani),Thursday,02:25,03:15,,,
+AP (Dr. Ashwin  Patani),Thursday,03:15,04:05,,,
+AP (Dr. Ashwin  Patani),Thursday,04:05,04:55,,,
+AP (Dr. Ashwin  Patani),Friday,09:00,09:55,5CSE : A2,AMP,LAB-B227-B-BB
+AP (Dr. Ashwin  Patani),Friday,09:55,10:50,5CSE : A2,AMP,LAB-B227-B-BB
+AP (Dr. Ashwin  Patani),Friday,10:50,11:45,5CSE : F2,AMP,LAB-6-MB
+AP (Dr. Ashwin  Patani),Friday,11:45,12:40,5CSE : F2,AMP,LAB-6-MB
+AP (Dr. Ashwin  Patani),Friday,12:40,01:35,,,
+AP (Dr. Ashwin  Patani),Friday,01:35,02:25,5CSE:A,AMP,LH-3
+AP (Dr. Ashwin  Patani),Friday,02:25,03:15,5CSE:C,AMP,LH-6
+AP (Dr. Ashwin  Patani),Friday,03:15,04:05,,,
+AP (Dr. Ashwin  Patani),Friday,04:05,04:55,,,
+MB (Ms. Madhvi Bera),Monday,09:00,09:55,5CSE:B,DAA,LH-4
+MB (Ms. Madhvi Bera),Monday,09:55,10:50,5CSE:C,DAA,LH-5
+MB (Ms. Madhvi Bera),Monday,10:50,11:45,,,
+MB (Ms. Madhvi Bera),Monday,11:45,12:40,,,
+MB (Ms. Madhvi Bera),Monday,12:40,01:35,,,
+MB (Ms. Madhvi Bera),Monday,01:35,02:25,,,
+MB (Ms. Madhvi Bera),Monday,02:25,03:15,,,
+MB (Ms. Madhvi Bera),Monday,03:15,04:05,,,
+MB (Ms. Madhvi Bera),Monday,04:05,04:55,,,
+MB (Ms. Madhvi Bera),Tuesday,09:00,09:55,,,
+MB (Ms. Madhvi Bera),Tuesday,09:55,10:50,,,
+MB (Ms. Madhvi Bera),Tuesday,10:50,11:45,,,
+MB (Ms. Madhvi Bera),Tuesday,11:45,12:40,,,
+MB (Ms. Madhvi Bera),Tuesday,12:40,01:35,,,
+MB (Ms. Madhvi Bera),Tuesday,01:35,02:25,,,
+MB (Ms. Madhvi Bera),Tuesday,02:25,03:15,,,
+MB (Ms. Madhvi Bera),Tuesday,03:15,04:05,,,
+MB (Ms. Madhvi Bera),Tuesday,04:05,04:55,,,
+MB (Ms. Madhvi Bera),Wednesday,09:00,09:55,5CSE:C,DAA,LH-11
+MB (Ms. Madhvi Bera),Wednesday,09:55,10:50,,,
+MB (Ms. Madhvi Bera),Wednesday,10:50,11:45,,,
+MB (Ms. Madhvi Bera),Wednesday,11:45,12:40,,,
+MB (Ms. Madhvi Bera),Wednesday,12:40,01:35,,,
+MB (Ms. Madhvi Bera),Wednesday,01:35,02:25,,,
+MB (Ms. Madhvi Bera),Wednesday,02:25,03:15,,,
+MB (Ms. Madhvi Bera),Wednesday,03:15,04:05,,,
+MB (Ms. Madhvi Bera),Wednesday,04:05,04:55,,,
+MB (Ms. Madhvi Bera),Thursday,09:00,09:55,,,
+MB (Ms. Madhvi Bera),Thursday,09:55,10:50,5CSE:B,DAA,LH-4
+MB (Ms. Madhvi Bera),Thursday,10:50,11:45,M.Tech,ADS,LH - B427B
+MB (Ms. Madhvi Bera),Thursday,11:45,12:40,,,
+MB (Ms. Madhvi Bera),Thursday,12:40,01:35,,,
+MB (Ms. Madhvi Bera),Thursday,01:35,02:25,,,
+MB (Ms. Madhvi Bera),Thursday,02:25,03:15,M.Tech,ADS,LH - B427C
+MB (Ms. Madhvi Bera),Thursday,03:15,04:05,,,
+MB (Ms. Madhvi Bera),Thursday,04:05,04:55,,,
+MB (Ms. Madhvi Bera),Friday,09:00,09:55,5CSE:B,DAA,LH-4
+MB (Ms. Madhvi Bera),Friday,09:55,10:50,M.Tech,ADS,LH - B427B
+MB (Ms. Madhvi Bera),Friday,10:50,11:45,,,
+MB (Ms. Madhvi Bera),Friday,11:45,12:40,5CSE:C,DAA,LH-3
+MB (Ms. Madhvi Bera),Friday,12:40,01:35,,,
+MB (Ms. Madhvi Bera),Friday,01:35,02:25,M.Tech,ADS,LAB - 6 - MB
+MB (Ms. Madhvi Bera),Friday,02:25,03:15,M.Tech,ADS,LAB - 6 - MB
+MB (Ms. Madhvi Bera),Friday,03:15,04:05,,,
+MB (Ms. Madhvi Bera),Friday,04:05,04:55,,,
+HM (Mr. Hiren Mer),Monday,09:00,09:55,5CSE : D1,WT,LAB-B128-A-BB
+HM (Mr. Hiren Mer),Monday,09:55,10:50,5CSE : D1,WT,LAB-B128-A-BB
+HM (Mr. Hiren Mer),Monday,10:50,11:45,5CSE:B,WT,LH-4
+HM (Mr. Hiren Mer),Monday,11:45,12:40,,,
+HM (Mr. Hiren Mer),Monday,12:40,01:35,,,
+HM (Mr. Hiren Mer),Monday,01:35,02:25,,,
+HM (Mr. Hiren Mer),Monday,02:25,03:15,,,
+HM (Mr. Hiren Mer),Monday,03:15,04:05,,,
+HM (Mr. Hiren Mer),Monday,04:05,04:55,,,
+HM (Mr. Hiren Mer),Tuesday,09:00,09:55,5CSE : B2,WT,LAB-B128-MB
+HM (Mr. Hiren Mer),Tuesday,09:55,10:50,5CSE : B2,WT,LAB-B128-MB
+HM (Mr. Hiren Mer),Tuesday,10:50,11:45,5CSE:B,WT,LH-11
+HM (Mr. Hiren Mer),Tuesday,11:45,12:40,,,
+HM (Mr. Hiren Mer),Tuesday,12:40,01:35,,,
+HM (Mr. Hiren Mer),Tuesday,01:35,02:25,5CSE:D,WT,LH-3
+HM (Mr. Hiren Mer),Tuesday,02:25,03:15,5CSE:E,WT,LH-5
+HM (Mr. Hiren Mer),Tuesday,03:15,04:05,,,
+HM (Mr. Hiren Mer),Tuesday,04:05,04:55,,,
+HM (Mr. Hiren Mer),Wednesday,09:00,09:55,,,
+HM (Mr. Hiren Mer),Wednesday,09:55,10:50,,,
+HM (Mr. Hiren Mer),Wednesday,10:50,11:45,5CSE:D,WT,LH-6
+HM (Mr. Hiren Mer),Wednesday,11:45,12:40,,,
+HM (Mr. Hiren Mer),Wednesday,12:40,01:35,,,
+HM (Mr. Hiren Mer),Wednesday,01:35,02:25,5CSE:E,WT,LH-3
+HM (Mr. Hiren Mer),Wednesday,02:25,03:15,5CSE:E,WT,LH-3
+HM (Mr. Hiren Mer),Wednesday,03:15,04:05,,,
+HM (Mr. Hiren Mer),Wednesday,04:05,04:55,,,
+HM (Mr. Hiren Mer),Thursday,09:00,09:55,5CSE : E2,WT,LAB-B128-B-BB
+HM (Mr. Hiren Mer),Thursday,09:55,10:50,5CSE : E2,WT,LAB-B128-B-BB
+HM (Mr. Hiren Mer),Thursday,10:50,11:45,5CSE:B,WT,LH-4
+HM (Mr. Hiren Mer),Thursday,11:45,12:40,,,
+HM (Mr. Hiren Mer),Thursday,12:40,01:35,,,
+HM (Mr. Hiren Mer),Thursday,01:35,02:25,5CSE : D2,WT,LAB-4-BB
+HM (Mr. Hiren Mer),Thursday,02:25,03:15,5CSE : D2,WT,LAB-4-BB
+HM (Mr. Hiren Mer),Thursday,03:15,04:05,,,
+HM (Mr. Hiren Mer),Thursday,04:05,04:55,,,
+HM (Mr. Hiren Mer),Friday,09:00,09:55,5CSE : E1,WT,LAB-B128-A-BB
+HM (Mr. Hiren Mer),Friday,09:55,10:50,5CSE : E1,WT,LAB-B128-A-BB
+HM (Mr. Hiren Mer),Friday,10:50,11:45,5CSE : B1,WT,LAB-3-BB
+HM (Mr. Hiren Mer),Friday,11:45,12:40,5CSE : B1,WT,LAB-3-BB
+HM (Mr. Hiren Mer),Friday,12:40,01:35,,,
+HM (Mr. Hiren Mer),Friday,01:35,02:25,5CSE:D,WT,LH-4
+HM (Mr. Hiren Mer),Friday,02:25,03:15,,,
+HM (Mr. Hiren Mer),Friday,03:15,04:05,,,
+HM (Mr. Hiren Mer),Friday,04:05,04:55,,,
+FG (Ms. Foram Gohel),Monday,09:00,09:55,,,
+FG (Ms. Foram Gohel),Monday,09:55,10:50,5CSE:H,DAA,LH-12
+FG (Ms. Foram Gohel),Monday,10:50,11:45,5CSE:D,DAA,LH-3
+FG (Ms. Foram Gohel),Monday,11:45,12:40,,,
+FG (Ms. Foram Gohel),Monday,12:40,01:35,,,
+FG (Ms. Foram Gohel),Monday,01:35,02:25,5CSE:A,DAA,LH-3
+FG (Ms. Foram Gohel),Monday,02:25,03:15,,,
+FG (Ms. Foram Gohel),Monday,03:15,04:05,,,
+FG (Ms. Foram Gohel),Monday,04:05,04:55,,,
+FG (Ms. Foram Gohel),Tuesday,09:00,09:55,5CSE : D2,DAA,LAB-128-B-BB
+FG (Ms. Foram Gohel),Tuesday,09:55,10:50,5CSE : D2,DAA,LAB-128-B-BB
+FG (Ms. Foram Gohel),Tuesday,10:50,11:45,5CSE:H2,DAA,LAB-6-MB
+FG (Ms. Foram Gohel),Tuesday,11:45,12:40,5CSE:H2,DAA,LAB-6-MB
+FG (Ms. Foram Gohel),Tuesday,12:40,01:35,,,
+FG (Ms. Foram Gohel),Tuesday,01:35,02:25,5CSE:H1,DAA,LAB-3-BB
+FG (Ms. Foram Gohel),Tuesday,02:25,03:15,5CSE:H1,DAA,LAB-3-BB
+FG (Ms. Foram Gohel),Tuesday,03:15,04:05,,,
+FG (Ms. Foram Gohel),Tuesday,04:05,04:55,,,
+FG (Ms. Foram Gohel),Wednesday,09:00,09:55,,,
+FG (Ms. Foram Gohel),Wednesday,09:55,10:50,5CSE:D,DAA,LH-6
+FG (Ms. Foram Gohel),Wednesday,10:50,11:45,5CSE:A,DAA,LH-3
+FG (Ms. Foram Gohel),Wednesday,11:45,12:40,,,
+FG (Ms. Foram Gohel),Wednesday,12:40,01:35,,,
+FG (Ms. Foram Gohel),Wednesday,01:35,02:25,5CSE : A1,DAA,LAB-3-BB
+FG (Ms. Foram Gohel),Wednesday,02:25,03:15,5CSE : A1,DAA,LAB-3-BB
+FG (Ms. Foram Gohel),Wednesday,03:15,04:05,,,
+FG (Ms. Foram Gohel),Wednesday,04:05,04:55,,,
+FG (Ms. Foram Gohel),Thursday,09:00,09:55,5CSE : A2,DAA,LAB-4-BB
+FG (Ms. Foram Gohel),Thursday,09:55,10:50,5CSE : A2,DAA,LAB-4-BB
+FG (Ms. Foram Gohel),Thursday,10:50,11:45,,,
+FG (Ms. Foram Gohel),Thursday,11:45,12:40,5CSE:H,DAA,LH-4
+FG (Ms. Foram Gohel),Thursday,12:40,01:35,,,
+FG (Ms. Foram Gohel),Thursday,01:35,02:25,5CSE : D1,DAA,LAB-B128-B-BB
+FG (Ms. Foram Gohel),Thursday,02:25,03:15,5CSE : D1,DAA,LAB-B128-B-BB
+FG (Ms. Foram Gohel),Thursday,03:15,04:05,,,
+FG (Ms. Foram Gohel),Thursday,04:05,04:55,,,
+FG (Ms. Foram Gohel),Friday,09:00,09:55,5CSE:H,DAA,LH-6
+FG (Ms. Foram Gohel),Friday,09:55,10:50,5CSE:D,DAA,LH-3
+FG (Ms. Foram Gohel),Friday,10:50,11:45,5CSE:A,DAA,LH-3
+FG (Ms. Foram Gohel),Friday,11:45,12:40,,,
+FG (Ms. Foram Gohel),Friday,12:40,01:35,,,
+FG (Ms. Foram Gohel),Friday,01:35,02:25,,,
+FG (Ms. Foram Gohel),Friday,02:25,03:15,,,
+FG (Ms. Foram Gohel),Friday,03:15,04:05,,,
+FG (Ms. Foram Gohel),Friday,04:05,04:55,,,
+DJ (Ms. Dipali Jitiya),Monday,09:00,09:55,5CSE : A2,CN,LAB-4-BB
+DJ (Ms. Dipali Jitiya),Monday,09:55,10:50,5CSE : A2,CN,LAB-4-BB
+DJ (Ms. Dipali Jitiya),Monday,10:50,11:45,,,
+DJ (Ms. Dipali Jitiya),Monday,11:45,12:40,,,
+DJ (Ms. Dipali Jitiya),Monday,12:40,01:35,,,
+DJ (Ms. Dipali Jitiya),Monday,01:35,02:25,5CSE:E,CN,LH-4
+DJ (Ms. Dipali Jitiya),Monday,02:25,03:15,5CSE:A,CN,LH-3
+DJ (Ms. Dipali Jitiya),Monday,03:15,04:05,,,
+DJ (Ms. Dipali Jitiya),Monday,04:05,04:55,,,
+DJ (Ms. Dipali Jitiya),Tuesday,09:00,09:55,5CSE:E,CN,LH-4
+DJ (Ms. Dipali Jitiya),Tuesday,09:55,10:50,5CSE:A,CN,LH-3
+DJ (Ms. Dipali Jitiya),Tuesday,10:50,11:45,5CSE : C1,CN,LAB-3-BB
+DJ (Ms. Dipali Jitiya),Tuesday,11:45,12:40,5CSE : C1,CN,LAB-3-BB
+DJ (Ms. Dipali Jitiya),Tuesday,12:40,01:35,,,
+DJ (Ms. Dipali Jitiya),Tuesday,01:35,02:25,,,
+DJ (Ms. Dipali Jitiya),Tuesday,02:25,03:15,5CSE:C,CN,LH-B528
+DJ (Ms. Dipali Jitiya),Tuesday,03:15,04:05,,,
+DJ (Ms. Dipali Jitiya),Tuesday,04:05,04:55,,,
+DJ (Ms. Dipali Jitiya),Wednesday,09:00,09:55,5CSE:A,CN,LH-3
+DJ (Ms. Dipali Jitiya),Wednesday,09:55,10:50,,,
+DJ (Ms. Dipali Jitiya),Wednesday,10:50,11:45,5CSE:C,CN,LH-5
+DJ (Ms. Dipali Jitiya),Wednesday,11:45,12:40,,,
+DJ (Ms. Dipali Jitiya),Wednesday,12:40,01:35,,,
+DJ (Ms. Dipali Jitiya),Wednesday,01:35,02:25,5CSE : C2,CN,LAB-B227-B-BB
+DJ (Ms. Dipali Jitiya),Wednesday,02:25,03:15,5CSE : C2,CN,LAB-B227-B-BB
+DJ (Ms. Dipali Jitiya),Wednesday,03:15,04:05,,,
+DJ (Ms. Dipali Jitiya),Wednesday,04:05,04:55,,,
+DJ (Ms. Dipali Jitiya),Thursday,09:00,09:55,5CSE : E1,CN,LAB-6-MB
+DJ (Ms. Dipali Jitiya),Thursday,09:55,10:50,5CSE : E1,CN,LAB-6-MB
+DJ (Ms. Dipali Jitiya),Thursday,10:50,11:45,5CSE:C,CN,LH-5
+DJ (Ms. Dipali Jitiya),Thursday,11:45,12:40,,,
+DJ (Ms. Dipali Jitiya),Thursday,12:40,01:35,,,
+DJ (Ms. Dipali Jitiya),Thursday,01:35,02:25,,,
+DJ (Ms. Dipali Jitiya),Thursday,02:25,03:15,,,
+DJ (Ms. Dipali Jitiya),Thursday,03:15,04:05,,,
+DJ (Ms. Dipali Jitiya),Thursday,04:05,04:55,,,
+DJ (Ms. Dipali Jitiya),Friday,09:00,09:55,5CSE : A1,CN,LAB-B226-BB
+DJ (Ms. Dipali Jitiya),Friday,09:55,10:50,5CSE : A1,CN,LAB-B226-BB
+DJ (Ms. Dipali Jitiya),Friday,10:50,11:45,5CSE : E2,CN,LAB-4-BB
+DJ (Ms. Dipali Jitiya),Friday,11:45,12:40,5CSE : E2,CN,LAB-4-BB
+DJ (Ms. Dipali Jitiya),Friday,12:40,01:35,,,
+DJ (Ms. Dipali Jitiya),Friday,01:35,02:25,,,
+DJ (Ms. Dipali Jitiya),Friday,02:25,03:15,5CSE:E,CN,LH-44
+DJ (Ms. Dipali Jitiya),Friday,03:15,04:05,,,
+DJ (Ms. Dipali Jitiya),Friday,04:05,04:55,,,
+TD (Ms. Toral Desai),Monday,09:00,09:55,3CSE:C,DBMS,LH-11
+TD (Ms. Toral Desai),Monday,09:55,10:50,,,
+TD (Ms. Toral Desai),Monday,10:50,11:45,,,
+TD (Ms. Toral Desai),Monday,11:45,12:40,3CSE:E,DBMS,LH-6
+TD (Ms. Toral Desai),Monday,12:40,01:35,,,
+TD (Ms. Toral Desai),Monday,01:35,02:25,3CSE:E,DBMS,LH-06
+TD (Ms. Toral Desai),Monday,02:25,03:15,,,
+TD (Ms. Toral Desai),Monday,03:15,04:05,3CSE:F,OOCP,LH-11
+TD (Ms. Toral Desai),Monday,04:05,04:55,,,
+TD (Ms. Toral Desai),Tuesday,09:00,09:55,,,
+TD (Ms. Toral Desai),Tuesday,09:55,10:50,,,
+TD (Ms. Toral Desai),Tuesday,10:50,11:45,3CSE : F2,OOCP,LAB-B227-B-BB
+TD (Ms. Toral Desai),Tuesday,11:45,12:40,3CSE : F2,OOCP,LAB-B227-B-BB
+TD (Ms. Toral Desai),Tuesday,12:40,01:35,,,
+TD (Ms. Toral Desai),Tuesday,01:35,02:25,3CSE:F,OOCP,LH-11
+TD (Ms. Toral Desai),Tuesday,02:25,03:15,,,
+TD (Ms. Toral Desai),Tuesday,03:15,04:05,3CSE:E,DBMS,LH-04
+TD (Ms. Toral Desai),Tuesday,04:05,04:55,,,
+TD (Ms. Toral Desai),Wednesday,09:00,09:55,,,
+TD (Ms. Toral Desai),Wednesday,09:55,10:50,,,
+TD (Ms. Toral Desai),Wednesday,10:50,11:45,,,
+TD (Ms. Toral Desai),Wednesday,11:45,12:40,3CSE : F1,OOCP,LAB-3-BB
+TD (Ms. Toral Desai),Wednesday,12:40,01:35,3CSE : F1,OOCP,LAB-3-BB
+TD (Ms. Toral Desai),Wednesday,01:35,02:25,3CSE:C,DBMS,LH-4
+TD (Ms. Toral Desai),Wednesday,02:25,03:15,,,
+TD (Ms. Toral Desai),Wednesday,03:15,04:05,3CSE : E1,DBMS,LAB-B226-BB
+TD (Ms. Toral Desai),Wednesday,04:05,04:55,3CSE : E1,DBMS,LAB-B226-BB
+TD (Ms. Toral Desai),Thursday,09:00,09:55,,,
+TD (Ms. Toral Desai),Thursday,09:55,10:50,,,
+TD (Ms. Toral Desai),Thursday,10:50,11:45,,,
+TD (Ms. Toral Desai),Thursday,11:45,12:40,3CSE:C,DBMS,LH-12
+TD (Ms. Toral Desai),Thursday,12:40,01:35,,,
+TD (Ms. Toral Desai),Thursday,01:35,02:25,3CSE : E2,DBMS,LAB-B227-A-BB
+TD (Ms. Toral Desai),Thursday,02:25,03:15,3CSE : E2,DBMS,LAB-B227-A-BB
+TD (Ms. Toral Desai),Thursday,03:15,04:05,3CSE : C2,DBMS,LAB-B128-B-BB
+TD (Ms. Toral Desai),Thursday,04:05,04:55,3CSE : C2,DBMS,LAB-B128-B-BB
+TD (Ms. Toral Desai),Friday,09:00,09:55,,,
+TD (Ms. Toral Desai),Friday,09:55,10:50,,,
+TD (Ms. Toral Desai),Friday,10:50,11:45,,,
+TD (Ms. Toral Desai),Friday,11:45,12:40,3CSE:F,OOCP,LH-04
+TD (Ms. Toral Desai),Friday,12:40,01:35,3CSE : C1,DBMS,LAB-B128-B-BB
+TD (Ms. Toral Desai),Friday,01:35,02:25,3CSE : C1,DBMS,LAB-B128-B-BB
+TD (Ms. Toral Desai),Friday,02:25,03:15,,,
+TD (Ms. Toral Desai),Friday,03:15,04:05,,,
+TD (Ms. Toral Desai),Friday,04:05,04:55,,,
+SR (Ms. Sweta Rathod),Monday,09:00,09:55,5CSE : G1,PSC,LAB-B128-B-BB
+SR (Ms. Sweta Rathod),Monday,09:55,10:50,5CSE : G1,PSC,LAB-B128-B-BB
+SR (Ms. Sweta Rathod),Monday,10:50,11:45,,,
+SR (Ms. Sweta Rathod),Monday,11:45,12:40,5CSE:B,PSC,LH-4
+SR (Ms. Sweta Rathod),Monday,12:40,01:35,,,
+SR (Ms. Sweta Rathod),Monday,01:35,02:25,5CSE : B1,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Monday,02:25,03:15,5CSE : B1,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Monday,03:15,04:05,,,
+SR (Ms. Sweta Rathod),Monday,04:05,04:55,,,
+SR (Ms. Sweta Rathod),Tuesday,09:00,09:55,5CSE:G,PSC,LH-5
+SR (Ms. Sweta Rathod),Tuesday,09:55,10:50,5CSE:H,PSC,LH-5
+SR (Ms. Sweta Rathod),Tuesday,10:50,11:45,,,
+SR (Ms. Sweta Rathod),Tuesday,11:45,12:40,,,
+SR (Ms. Sweta Rathod),Tuesday,12:40,01:35,,,
+SR (Ms. Sweta Rathod),Tuesday,01:35,02:25,5CSE : H2,PSC,LAB-B128-A-BB
+SR (Ms. Sweta Rathod),Tuesday,02:25,03:15,5CSE : H2,PSC,LAB-B128-A-BB
+SR (Ms. Sweta Rathod),Tuesday,03:15,04:05,,,
+SR (Ms. Sweta Rathod),Tuesday,04:05,04:55,,,
+SR (Ms. Sweta Rathod),Wednesday,09:00,09:55,5CSE:G,PSC,LH-5
+SR (Ms. Sweta Rathod),Wednesday,09:55,10:50,5CSE : H1,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Wednesday,10:50,11:45,5CSE : H1,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Wednesday,11:45,12:40,,,
+SR (Ms. Sweta Rathod),Wednesday,12:40,01:35,,,
+SR (Ms. Sweta Rathod),Wednesday,01:35,02:25,,,
+SR (Ms. Sweta Rathod),Wednesday,02:25,03:15,5CSE:B,PSC,LH-4
+SR (Ms. Sweta Rathod),Wednesday,03:15,04:05,,,
+SR (Ms. Sweta Rathod),Wednesday,04:05,04:55,,,
+SR (Ms. Sweta Rathod),Thursday,09:00,09:55,5CSE:B,PSC,LH-4
+SR (Ms. Sweta Rathod),Thursday,09:55,10:50,5CSE:H,PSC,LH-5
+SR (Ms. Sweta Rathod),Thursday,10:50,11:45,,,
+SR (Ms. Sweta Rathod),Thursday,11:45,12:40,,,
+SR (Ms. Sweta Rathod),Thursday,12:40,01:35,,,
+SR (Ms. Sweta Rathod),Thursday,01:35,02:25,5CSE : B2,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Thursday,02:25,03:15,5CSE : B2,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Thursday,03:15,04:05,,,
+SR (Ms. Sweta Rathod),Thursday,04:05,04:55,,,
+SR (Ms. Sweta Rathod),Friday,09:00,09:55,5CSE : G2,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Friday,09:55,10:50,5CSE : G2,PSC,LAB-3-BB
+SR (Ms. Sweta Rathod),Friday,10:50,11:45,5CSE:G,PSC,LH-5
+SR (Ms. Sweta Rathod),Friday,11:45,12:40,,,
+SR (Ms. Sweta Rathod),Friday,12:40,01:35,,,
+SR (Ms. Sweta Rathod),Friday,01:35,02:25,5CSE:H,PSC,LH-5
+SR (Ms. Sweta Rathod),Friday,02:25,03:15,,,
+SR (Ms. Sweta Rathod),Friday,03:15,04:05,,,
+SR (Ms. Sweta Rathod),Friday,04:05,04:55,,,
+SJ(Ms. Shruti Jaiswal),Monday,09:00,09:55,,,
+SJ(Ms. Shruti Jaiswal),Monday,09:55,10:50,,,
+SJ(Ms. Shruti Jaiswal),Monday,10:50,11:45,,,
+SJ(Ms. Shruti Jaiswal),Monday,11:45,12:40,5CSE:H,WT,LH-12
+SJ(Ms. Shruti Jaiswal),Monday,12:40,01:35,5CSE:G,DAA,LH-14
+SJ(Ms. Shruti Jaiswal),Monday,01:35,02:25,5CSE : H2,WT,LAB-B128-b-BB
+SJ(Ms. Shruti Jaiswal),Monday,02:25,03:15,5CSE : H2,WT,LAB-B128-b-BB
+SJ(Ms. Shruti Jaiswal),Monday,03:15,04:05,,,
+SJ(Ms. Shruti Jaiswal),Monday,04:05,04:55,,,
+SJ(Ms. Shruti Jaiswal),Tuesday,09:00,09:55,5CSE:H,WT,LH-6
+SJ(Ms. Shruti Jaiswal),Tuesday,09:55,10:50,,,
+SJ(Ms. Shruti Jaiswal),Tuesday,10:50,11:45,5CSE : H1,WT,LAB-B226-BB
+SJ(Ms. Shruti Jaiswal),Tuesday,11:45,12:40,5CSE : H1,WT,LAB-B226-BB
+SJ(Ms. Shruti Jaiswal),Tuesday,12:40,01:35,,,
+SJ(Ms. Shruti Jaiswal),Tuesday,01:35,02:25,5CSE : G2,WT,LAB-B128-B-BB
+SJ(Ms. Shruti Jaiswal),Tuesday,02:25,03:15,5CSE : G2,WT,LAB-B128-B-BB
+SJ(Ms. Shruti Jaiswal),Tuesday,03:15,04:05,,,
+SJ(Ms. Shruti Jaiswal),Tuesday,04:05,04:55,,,
+SJ(Ms. Shruti Jaiswal),Wednesday,09:00,09:55,5CSE:H,WT,LH-13
+SJ(Ms. Shruti Jaiswal),Wednesday,09:55,10:50,5CSE:G,WT,LH-3
+SJ(Ms. Shruti Jaiswal),Wednesday,10:50,11:45,,,
+SJ(Ms. Shruti Jaiswal),Wednesday,11:45,12:40,5CSE:G,DAA,LH-11
+SJ(Ms. Shruti Jaiswal),Wednesday,12:40,01:35,,,
+SJ(Ms. Shruti Jaiswal),Wednesday,01:35,02:25,5CSE : G1,DAA,LAB-B128-B-BB
+SJ(Ms. Shruti Jaiswal),Wednesday,02:25,03:15,5CSE : G1,DAA,LAB-B128-B-BB
+SJ(Ms. Shruti Jaiswal),Wednesday,03:15,04:05,,,
+SJ(Ms. Shruti Jaiswal),Wednesday,04:05,04:55,,,
+SJ(Ms. Shruti Jaiswal),Thursday,09:00,09:55,,,
+SJ(Ms. Shruti Jaiswal),Thursday,09:55,10:50,5CSE:G,WT,LH-3
+SJ(Ms. Shruti Jaiswal),Thursday,10:50,11:45,,,
+SJ(Ms. Shruti Jaiswal),Thursday,11:45,12:40,,,
+SJ(Ms. Shruti Jaiswal),Thursday,12:40,01:35,,,
+SJ(Ms. Shruti Jaiswal),Thursday,01:35,02:25,5CSE:G,WT,LH-3
+SJ(Ms. Shruti Jaiswal),Thursday,02:25,03:15,5CSE:G,DAA,LH-3
+SJ(Ms. Shruti Jaiswal),Thursday,03:15,04:05,,,
+SJ(Ms. Shruti Jaiswal),Thursday,04:05,04:55,,,
+SJ(Ms. Shruti Jaiswal),Friday,09:00,09:55,5CSE : G1,WT,LAB-B227-A-BB
+SJ(Ms. Shruti Jaiswal),Friday,09:55,10:50,5CSE : G1,WT,LAB-B227-A-BB
+SJ(Ms. Shruti Jaiswal),Friday,10:50,11:45,,,
+SJ(Ms. Shruti Jaiswal),Friday,11:45,12:40,,,
+SJ(Ms. Shruti Jaiswal),Friday,12:40,01:35,,,
+SJ(Ms. Shruti Jaiswal),Friday,01:35,02:25,5CSE : G2,DAA,LAB-B227-A-BB
+SJ(Ms. Shruti Jaiswal),Friday,02:25,03:15,5CSE : G2,DAA,LAB-B227-A-BB
+SJ(Ms. Shruti Jaiswal),Friday,03:15,04:05,,,
+SJ(Ms. Shruti Jaiswal),Friday,04:05,04:55,,,
+BP(Ms. Babita Patel),Monday,09:00,09:55,,,
+BP(Ms. Babita Patel),Monday,09:55,10:50,,,
+BP(Ms. Babita Patel),Monday,10:50,11:45,,,
+BP(Ms. Babita Patel),Monday,11:45,12:40,3CSE : I2,DBMS,LAB-128-B-BB
+BP(Ms. Babita Patel),Monday,12:40,01:35,3CSE : I2,DBMS,LAB-128-B-BB
+BP(Ms. Babita Patel),Monday,01:35,02:25,3CSE:B,DBMS,LH-11
+BP(Ms. Babita Patel),Monday,02:25,03:15,,,
+BP(Ms. Babita Patel),Monday,03:15,04:05,3CSE : I1,DBMS,LAB-4-BB
+BP(Ms. Babita Patel),Monday,04:05,04:55,3CSE : I1,DBMS,LAB-4-BB
+BP(Ms. Babita Patel),Tuesday,09:00,09:55,,,
+BP(Ms. Babita Patel),Tuesday,09:55,10:50,,,
+BP(Ms. Babita Patel),Tuesday,10:50,11:45,3CSE : F1,DBMS,LAB-B227-A-BB
+BP(Ms. Babita Patel),Tuesday,11:45,12:40,3CSE : F1,DBMS,LAB-B227-A-BB
+BP(Ms. Babita Patel),Tuesday,12:40,01:35,,,
+BP(Ms. Babita Patel),Tuesday,01:35,02:25,,,
+BP(Ms. Babita Patel),Tuesday,02:25,03:15,3CSE:F,DBMS,LH-11
+BP(Ms. Babita Patel),Tuesday,03:15,04:05,,,
+BP(Ms. Babita Patel),Tuesday,04:05,04:55,,,
+BP(Ms. Babita Patel),Wednesday,09:00,09:55,,,
+BP(Ms. Babita Patel),Wednesday,09:55,10:50,,,
+BP(Ms. Babita Patel),Wednesday,10:50,11:45,,,
+BP(Ms. Babita Patel),Wednesday,11:45,12:40,,,
+BP(Ms. Babita Patel),Wednesday,12:40,01:35,,,
+BP(Ms. Babita Patel),Wednesday,01:35,02:25,3CSE:F,DBMS,LH-11
+BP(Ms. Babita Patel),Wednesday,02:25,03:15,,,
+BP(Ms. Babita Patel),Wednesday,03:15,04:05,3CSE : B2,DBMS,LAB-128-A-BB
+BP(Ms. Babita Patel),Wednesday,04:05,04:55,3CSE : B2,DBMS,LAB-128-A-BB
+BP(Ms. Babita Patel),Thursday,09:00,09:55,,,
+BP(Ms. Babita Patel),Thursday,09:55,10:50,3CSE:B,DBMS,LH-11
+BP(Ms. Babita Patel),Thursday,10:50,11:45,,,
+BP(Ms. Babita Patel),Thursday,11:45,12:40,3CSE : B1,DBMS,LAB-4-BB
+BP(Ms. Babita Patel),Thursday,12:40,01:35,3CSE : B1,DBMS,LAB-4-BB
+BP(Ms. Babita Patel),Thursday,01:35,02:25,,,
+BP(Ms. Babita Patel),Thursday,02:25,03:15,,,
+BP(Ms. Babita Patel),Thursday,03:15,04:05,3CSE:F,DBMS,LH-44
+BP(Ms. Babita Patel),Thursday,04:05,04:55,,,
+BP(Ms. Babita Patel),Friday,09:00,09:55,,,
+BP(Ms. Babita Patel),Friday,09:55,10:50,,,
+BP(Ms. Babita Patel),Friday,10:50,11:45,,,
+BP(Ms. Babita Patel),Friday,11:45,12:40,3CSE:B,DBMS,LH-05
+BP(Ms. Babita Patel),Friday,12:40,01:35,3CSE : F2,DBMS,LAB-3-BB
+BP(Ms. Babita Patel),Friday,01:35,02:25,3CSE : F2,DBMS,LAB-3-BB
+BP(Ms. Babita Patel),Friday,02:25,03:15,,,
+BP(Ms. Babita Patel),Friday,03:15,04:05,3CSE:I,DBMS,LH-06
+BP(Ms. Babita Patel),Friday,04:05,04:55,,,
+PN (Mr. Parth Nirmal),Monday,09:00,09:55,5CSE:H,AMP,LH-12
+PN (Mr. Parth Nirmal),Monday,09:55,10:50,5CSE:E,AMP,LH-3
+PN (Mr. Parth Nirmal),Monday,10:50,11:45,,,
+PN (Mr. Parth Nirmal),Monday,11:45,12:40,5CSE : E2,AMP,LAB-B226-BB
+PN (Mr. Parth Nirmal),Monday,12:40,01:35,5CSE : E2,AMP,LAB-B226-BB
+PN (Mr. Parth Nirmal),Monday,01:35,02:25,,,
+PN (Mr. Parth Nirmal),Monday,02:25,03:15,,,
+PN (Mr. Parth Nirmal),Monday,03:15,04:05,3CSE:G,DBMS,LH-06
+PN (Mr. Parth Nirmal),Monday,04:05,04:55,,,
+PN (Mr. Parth Nirmal),Tuesday,09:00,09:55,,,
+PN (Mr. Parth Nirmal),Tuesday,09:55,10:50,,,
+PN (Mr. Parth Nirmal),Tuesday,10:50,11:45,,,
+PN (Mr. Parth Nirmal),Tuesday,11:45,12:40,,,
+PN (Mr. Parth Nirmal),Tuesday,12:40,01:35,5CSE:E,AMP,LH-43
+PN (Mr. Parth Nirmal),Tuesday,01:35,02:25,5CSE:E,AMP,LH-5
+PN (Mr. Parth Nirmal),Tuesday,02:25,03:15,,,
+PN (Mr. Parth Nirmal),Tuesday,03:15,04:05,,,
+PN (Mr. Parth Nirmal),Tuesday,04:05,04:55,,,
+PN (Mr. Parth Nirmal),Wednesday,09:00,09:55,,,
+PN (Mr. Parth Nirmal),Wednesday,09:55,10:50,5CSE : H2,AMP,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Wednesday,10:50,11:45,5CSE : H2,AMP,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Wednesday,11:45,12:40,,,
+PN (Mr. Parth Nirmal),Wednesday,12:40,01:35,,,
+PN (Mr. Parth Nirmal),Wednesday,01:35,02:25,3CSE:G,DBMS,LH-12
+PN (Mr. Parth Nirmal),Wednesday,02:25,03:15,5CSE:H,AMP,LH-B504
+PN (Mr. Parth Nirmal),Wednesday,03:15,04:05,3CSE : G2,DBMS,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Wednesday,04:05,04:55,3CSE : G2,DBMS,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Thursday,09:00,09:55,5CSE:H,AMP,LH-5
+PN (Mr. Parth Nirmal),Thursday,09:55,10:50,,,
+PN (Mr. Parth Nirmal),Thursday,10:50,11:45,3CSE : G1,DBMS,LAB-B128-B-BB
+PN (Mr. Parth Nirmal),Thursday,11:45,12:40,3CSE : G1,DBMS,LAB-B128-B-BB
+PN (Mr. Parth Nirmal),Thursday,12:40,01:35,,,
+PN (Mr. Parth Nirmal),Thursday,01:35,02:25,5CSE : H1,AMP,LAB-B128-B-BB
+PN (Mr. Parth Nirmal),Thursday,02:25,03:15,5CSE : H1,AMP,LAB-B128-B-BB
+PN (Mr. Parth Nirmal),Thursday,03:15,04:05,,,
+PN (Mr. Parth Nirmal),Thursday,04:05,04:55,,,
+PN (Mr. Parth Nirmal),Friday,09:00,09:55,,,
+PN (Mr. Parth Nirmal),Friday,09:55,10:50,,,
+PN (Mr. Parth Nirmal),Friday,10:50,11:45,5CSE : E1,AMP,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Friday,11:45,12:40,5CSE : E1,AMP,LAB-B227-B-BB
+PN (Mr. Parth Nirmal),Friday,12:40,01:35,,,
+PN (Mr. Parth Nirmal),Friday,01:35,02:25,3CSE:G,DBMS,LH-04
+PN (Mr. Parth Nirmal),Friday,02:25,03:15,,,
+PN (Mr. Parth Nirmal),Friday,03:15,04:05,,,
+PN (Mr. Parth Nirmal),Friday,04:05,04:55,,,
+AC(Ms. Anjali Chopra),Monday,09:00,09:55,3CSE : E2,OOCP,LAB-B226-BB
+AC(Ms. Anjali Chopra),Monday,09:55,10:50,3CSE : E2,OOCP,LAB-B226-BB
+AC(Ms. Anjali Chopra),Monday,10:50,11:45,,,
+AC(Ms. Anjali Chopra),Monday,11:45,12:40,,,
+AC(Ms. Anjali Chopra),Monday,12:40,01:35,3CSE:E,OOCP,LH-06
+AC(Ms. Anjali Chopra),Monday,01:35,02:25,,,
+AC(Ms. Anjali Chopra),Monday,02:25,03:15,3CSE:G,OOCP,LH-06
+AC(Ms. Anjali Chopra),Monday,03:15,04:05,3CSE : D2,DBMS,LAB-227-A-BB
+AC(Ms. Anjali Chopra),Monday,04:05,04:55,3CSE : D2,DBMS,LAB-227-A-BB
+AC(Ms. Anjali Chopra),Tuesday,09:00,09:55,3CSE : D1,DBMS,LAB-4-BB
+AC(Ms. Anjali Chopra),Tuesday,09:55,10:50,3CSE : D1,DBMS,LAB-4-BB
+AC(Ms. Anjali Chopra),Tuesday,10:50,11:45,,,
+AC(Ms. Anjali Chopra),Tuesday,11:45,12:40,,,
+AC(Ms. Anjali Chopra),Tuesday,12:40,01:35,,,
+AC(Ms. Anjali Chopra),Tuesday,01:35,02:25,3CSE:G,OOCP,LH-12
+AC(Ms. Anjali Chopra),Tuesday,02:25,03:15,,,
+AC(Ms. Anjali Chopra),Tuesday,03:15,04:05,3CSE : G1,OOCP,LAB-3-BB
+AC(Ms. Anjali Chopra),Tuesday,04:05,04:55,3CSE : G1,OOCP,LAB-3-BB
+AC(Ms. Anjali Chopra),Wednesday,09:00,09:55,,,
+AC(Ms. Anjali Chopra),Wednesday,09:55,10:50,,,
+AC(Ms. Anjali Chopra),Wednesday,10:50,11:45,,,
+AC(Ms. Anjali Chopra),Wednesday,11:45,12:40,,,
+AC(Ms. Anjali Chopra),Wednesday,12:40,01:35,,,
+AC(Ms. Anjali Chopra),Wednesday,01:35,02:25,,,
+AC(Ms. Anjali Chopra),Wednesday,02:25,03:15,,,
+AC(Ms. Anjali Chopra),Wednesday,03:15,04:05,3CSE:D,DBMS,LH-43
+AC(Ms. Anjali Chopra),Wednesday,04:05,04:55,,,
+AC(Ms. Anjali Chopra),Thursday,09:00,09:55,,,
+AC(Ms. Anjali Chopra),Thursday,09:55,10:50,,,
+AC(Ms. Anjali Chopra),Thursday,10:50,11:45,3CSE : G2,OOCP,LAB-B128-A-BB
+AC(Ms. Anjali Chopra),Thursday,11:45,12:40,3CSE : G2,OOCP,LAB-B128-A-BB
+AC(Ms. Anjali Chopra),Thursday,12:40,01:35,,,
+AC(Ms. Anjali Chopra),Thursday,01:35,02:25,3CSE : E1,OOCP,LAB-B227-B-BB
+AC(Ms. Anjali Chopra),Thursday,02:25,03:15,3CSE : E1,OOCP,LAB-B227-B-BB
+AC(Ms. Anjali Chopra),Thursday,03:15,04:05,,,
+AC(Ms. Anjali Chopra),Thursday,04:05,04:55,3CSE:D,DBMS,LH-12
+AC(Ms. Anjali Chopra),Friday,09:00,09:55,,,
+AC(Ms. Anjali Chopra),Friday,09:55,10:50,,,
+AC(Ms. Anjali Chopra),Friday,10:50,11:45,3CSE:E,OOCP,LH-B426
+AC(Ms. Anjali Chopra),Friday,11:45,12:40,3CSE:D,DBMS,LH-12
+AC(Ms. Anjali Chopra),Friday,12:40,01:35,,,
+AC(Ms. Anjali Chopra),Friday,01:35,02:25,3CSE:E,OOCP,LH-12
+AC(Ms. Anjali Chopra),Friday,02:25,03:15,3CSE:G,OOCP,LH-04
+AC(Ms. Anjali Chopra),Friday,03:15,04:05,,,
+AC(Ms. Anjali Chopra),Friday,04:05,04:55,,,
+PS(Mr.Prejesh Pal Singh),Monday,09:00,09:55,,,
+PS(Mr.Prejesh Pal Singh),Monday,09:55,10:50,,,
+PS(Mr.Prejesh Pal Singh),Monday,10:50,11:45,3CSE : H1,OOCP,LAB-B227-B-BB
+PS(Mr.Prejesh Pal Singh),Monday,11:45,12:40,3CSE : H1,OOCP,LAB-B227-B-BB
+PS(Mr.Prejesh Pal Singh),Monday,12:40,01:35,,,
+PS(Mr.Prejesh Pal Singh),Monday,01:35,02:25,5CSE:C2,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Monday,02:25,03:15,5CSE:C2,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Monday,03:15,04:05,3CSE:H,OOCP,LH-12
+PS(Mr.Prejesh Pal Singh),Monday,04:05,04:55,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,09:00,09:55,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,09:55,10:50,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,10:50,11:45,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,11:45,12:40,3CSE:C,OOCP,LH-06
+PS(Mr.Prejesh Pal Singh),Tuesday,12:40,01:35,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,01:35,02:25,,,
+PS(Mr.Prejesh Pal Singh),Tuesday,02:25,03:15,3CSE:C,OOCP,LH-12
+PS(Mr.Prejesh Pal Singh),Tuesday,03:15,04:05,3CSE : H2,OOCP,LAB-B226-BB
+PS(Mr.Prejesh Pal Singh),Tuesday,04:05,04:55,3CSE : H2,OOCP,LAB-B226-BB
+PS(Mr.Prejesh Pal Singh),Wednesday,09:00,09:55,5CSE : B2,DAA,LAB-B128-BB
+PS(Mr.Prejesh Pal Singh),Wednesday,09:55,10:50,5CSE : B2,DAA,LAB-B128-BB
+PS(Mr.Prejesh Pal Singh),Wednesday,10:50,11:45,3CSE : C1,OOCP,LAB-B128-A-BB
+PS(Mr.Prejesh Pal Singh),Wednesday,11:45,12:40,3CSE : C1,OOCP,LAB-B128-A-BB
+PS(Mr.Prejesh Pal Singh),Wednesday,12:40,01:35,,,
+PS(Mr.Prejesh Pal Singh),Wednesday,01:35,02:25,5CSE : C1,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Wednesday,02:25,03:15,5CSE : C1,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Wednesday,03:15,04:05,,,
+PS(Mr.Prejesh Pal Singh),Wednesday,04:05,04:55,,,
+PS(Mr.Prejesh Pal Singh),Thursday,09:00,09:55,,,
+PS(Mr.Prejesh Pal Singh),Thursday,09:55,10:50,,,
+PS(Mr.Prejesh Pal Singh),Thursday,10:50,11:45,,,
+PS(Mr.Prejesh Pal Singh),Thursday,11:45,12:40,,,
+PS(Mr.Prejesh Pal Singh),Thursday,12:40,01:35,,,
+PS(Mr.Prejesh Pal Singh),Thursday,01:35,02:25,5CSE:B1,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Thursday,02:25,03:15,5CSE:B1,DAA,LAB-6-MB
+PS(Mr.Prejesh Pal Singh),Thursday,03:15,04:05,3CSE:H,OOCP,LH-05
+PS(Mr.Prejesh Pal Singh),Thursday,04:05,04:55,,,
+PS(Mr.Prejesh Pal Singh),Friday,09:00,09:55,3CSE:C,OOCP,LH-05
+PS(Mr.Prejesh Pal Singh),Friday,09:55,10:50,,,
+PS(Mr.Prejesh Pal Singh),Friday,10:50,11:45,,,
+PS(Mr.Prejesh Pal Singh),Friday,11:45,12:40,,,
+PS(Mr.Prejesh Pal Singh),Friday,12:40,01:35,3CSE : C2,OOCP,LAB-B128-A-BB
+PS(Mr.Prejesh Pal Singh),Friday,01:35,02:25,3CSE : C2,OOCP,LAB-B128-A-BB
+PS(Mr.Prejesh Pal Singh),Friday,02:25,03:15,3CSE:H,OOCP,LH-3
+PS(Mr.Prejesh Pal Singh),Friday,03:15,04:05,,,
+PS(Mr.Prejesh Pal Singh),Friday,04:05,04:55,,,
+ZK (Ms. Zarna Kotak),Monday,09:00,09:55,,,
+ZK (Ms. Zarna Kotak),Monday,09:55,10:50,5CSE:F,WT,LH-6
+ZK (Ms. Zarna Kotak),Monday,10:50,11:45,,,
+ZK (Ms. Zarna Kotak),Monday,11:45,12:40,3CSE : D1,OOCP,LAB-3-BB
+ZK (Ms. Zarna Kotak),Monday,12:40,01:35,3CSE : D1,OOCP,LAB-3-BB
+ZK (Ms. Zarna Kotak),Monday,01:35,02:25,,,
+ZK (Ms. Zarna Kotak),Monday,02:25,03:15,,,
+ZK (Ms. Zarna Kotak),Monday,03:15,04:05,3CSE : I2,OOCP,LAB-128-A-BB
+ZK (Ms. Zarna Kotak),Monday,04:05,04:55,3CSE : I2,OOCP,LAB-128-A-BB
+ZK (Ms. Zarna Kotak),Tuesday,09:00,09:55,3CSE : D2,OOCP,LAB-3-BB
+ZK (Ms. Zarna Kotak),Tuesday,09:55,10:50,3CSE : D2,OOCP,LAB-3-BB
+ZK (Ms. Zarna Kotak),Tuesday,10:50,11:45,5CSE:F,WT,LH-5
+ZK (Ms. Zarna Kotak),Tuesday,11:45,12:40,,,
+ZK (Ms. Zarna Kotak),Tuesday,12:40,01:35,3CSE:D,OOCP,LH-11
+ZK (Ms. Zarna Kotak),Tuesday,01:35,02:25,,,
+ZK (Ms. Zarna Kotak),Tuesday,02:25,03:15,3CSE:I,OOCP,LH-14
+ZK (Ms. Zarna Kotak),Tuesday,03:15,04:05,3CSE : I1,OOCP,LAB-4-B-BB
+ZK (Ms. Zarna Kotak),Tuesday,04:05,04:55,3CSE : I1,OOCP,LAB-4-B-BB
+ZK (Ms. Zarna Kotak),Wednesday,09:00,09:55,5CSE : F2,WT,LAB-4-BB
+ZK (Ms. Zarna Kotak),Wednesday,09:55,10:50,5CSE : F2,WT,LAB-4-BB
+ZK (Ms. Zarna Kotak),Wednesday,10:50,11:45,,,
+ZK (Ms. Zarna Kotak),Wednesday,11:45,12:40,,,
+ZK (Ms. Zarna Kotak),Wednesday,12:40,01:35,,,
+ZK (Ms. Zarna Kotak),Wednesday,01:35,02:25,,,
+ZK (Ms. Zarna Kotak),Wednesday,02:25,03:15,3CSE:I,OOCP,LH-05
+ZK (Ms. Zarna Kotak),Wednesday,03:15,04:05,,,
+ZK (Ms. Zarna Kotak),Wednesday,04:05,04:55,,,
+ZK (Ms. Zarna Kotak),Thursday,09:00,09:55,5CSE : F1,WT,LAB-B226-BB
+ZK (Ms. Zarna Kotak),Thursday,09:55,10:50,5CSE : F1,WT,LAB-B226-BB
+ZK (Ms. Zarna Kotak),Thursday,10:50,11:45,,,
+ZK (Ms. Zarna Kotak),Thursday,11:45,12:40,,,
+ZK (Ms. Zarna Kotak),Thursday,12:40,01:35,3CSE:D,OOCP,LH-12
+ZK (Ms. Zarna Kotak),Thursday,01:35,02:25,,,
+ZK (Ms. Zarna Kotak),Thursday,02:25,03:15,5CSE:F,WT,LH-5
+ZK (Ms. Zarna Kotak),Thursday,03:15,04:05,,,
+ZK (Ms. Zarna Kotak),Thursday,04:05,04:55,,,
+ZK (Ms. Zarna Kotak),Friday,09:00,09:55,,,
+ZK (Ms. Zarna Kotak),Friday,09:55,10:50,,,
+ZK (Ms. Zarna Kotak),Friday,10:50,11:45,,,
+ZK (Ms. Zarna Kotak),Friday,11:45,12:40,,,
+ZK (Ms. Zarna Kotak),Friday,12:40,01:35,3CSE:I,OOCP,LH-06
+ZK (Ms. Zarna Kotak),Friday,01:35,02:25,3CSE:D,OOCP,LH-11
+ZK (Ms. Zarna Kotak),Friday,02:25,03:15,,,
+ZK (Ms. Zarna Kotak),Friday,03:15,04:05,,,
+ZK (Ms. Zarna Kotak),Friday,04:05,04:55,,,
+VS (Mr. Vastal Suthar),Monday,09:00,09:55,,,
+VS (Mr. Vastal Suthar),Monday,09:55,10:50,,,
+VS (Mr. Vastal Suthar),Monday,10:50,11:45,,,
+VS (Mr. Vastal Suthar),Monday,11:45,12:40,,,
+VS (Mr. Vastal Suthar),Monday,12:40,01:35,,,
+VS (Mr. Vastal Suthar),Monday,01:35,02:25,,,
+VS (Mr. Vastal Suthar),Monday,02:25,03:15,,,
+VS (Mr. Vastal Suthar),Monday,03:15,04:05,,,
+VS (Mr. Vastal Suthar),Monday,04:05,04:55,,,
+VS (Mr. Vastal Suthar),Tuesday,09:00,09:55,,,
+VS (Mr. Vastal Suthar),Tuesday,09:55,10:50,,,
+VS (Mr. Vastal Suthar),Tuesday,10:50,11:45,,,
+VS (Mr. Vastal Suthar),Tuesday,11:45,12:40,,,
+VS (Mr. Vastal Suthar),Tuesday,12:40,01:35,,,
+VS (Mr. Vastal Suthar),Tuesday,01:35,02:25,M.Tech,DPA,LH - B525
+VS (Mr. Vastal Suthar),Tuesday,02:25,03:15,,,
+VS (Mr. Vastal Suthar),Tuesday,03:15,04:05,M.Tech,DPA,LAB - B128-A-BB
+VS (Mr. Vastal Suthar),Tuesday,04:05,04:55,M.Tech,DPA,LAB - B128-A-BB
+VS (Mr. Vastal Suthar),Wednesday,09:00,09:55,,,
+VS (Mr. Vastal Suthar),Wednesday,09:55,10:50,,,
+VS (Mr. Vastal Suthar),Wednesday,10:50,11:45,,,
+VS (Mr. Vastal Suthar),Wednesday,11:45,12:40,M.Tech,DOS,LAB - B128 - BB
+VS (Mr. Vastal Suthar),Wednesday,12:40,01:35,M.Tech,DOS,LAB - B128 - BB
+VS (Mr. Vastal Suthar),Wednesday,01:35,02:25,,,
+VS (Mr. Vastal Suthar),Wednesday,02:25,03:15,M.Tech,DOS,LH - B427C
+VS (Mr. Vastal Suthar),Wednesday,03:15,04:05,,,
+VS (Mr. Vastal Suthar),Wednesday,04:05,04:55,,,
+VS (Mr. Vastal Suthar),Thursday,09:00,09:55,,,
+VS (Mr. Vastal Suthar),Thursday,09:55,10:50,M.Tech,DPA,LH - B428C
+VS (Mr. Vastal Suthar),Thursday,10:50,11:45,,,
+VS (Mr. Vastal Suthar),Thursday,11:45,12:40,,,
+VS (Mr. Vastal Suthar),Thursday,12:40,01:35,,,
+VS (Mr. Vastal Suthar),Thursday,01:35,02:25,,,
+VS (Mr. Vastal Suthar),Thursday,02:25,03:15,,,
+VS (Mr. Vastal Suthar),Thursday,03:15,04:05,M.Tech,DOS,LH - B427C
+VS (Mr. Vastal Suthar),Thursday,04:05,04:55,,,
+VS (Mr. Vastal Suthar),Friday,09:00,09:55,,,
+VS (Mr. Vastal Suthar),Friday,09:55,10:50,,,
+VS (Mr. Vastal Suthar),Friday,10:50,11:45,,,
+VS (Mr. Vastal Suthar),Friday,11:45,12:40,M.Tech,DOS,LH - B426
+VS (Mr. Vastal Suthar),Friday,12:40,01:35,,,
+VS (Mr. Vastal Suthar),Friday,01:35,02:25,,,
+VS (Mr. Vastal Suthar),Friday,02:25,03:15,,,
+VS (Mr. Vastal Suthar),Friday,03:15,04:05,,,
+VS (Mr. Vastal Suthar),Friday,04:05,04:55,M.Tech,DPA,LH - 5
+VR (Ms. Vrushali Rajvanshi),Monday,09:00,09:55,,,
+VR (Ms. Vrushali Rajvanshi),Monday,09:55,10:50,,,
+VR (Ms. Vrushali Rajvanshi),Monday,10:50,11:45,,,
+VR (Ms. Vrushali Rajvanshi),Monday,11:45,12:40,,,
+VR (Ms. Vrushali Rajvanshi),Monday,12:40,01:35,,,
+VR (Ms. Vrushali Rajvanshi),Monday,01:35,02:25,,,
+VR (Ms. Vrushali Rajvanshi),Monday,02:25,03:15,,,
+VR (Ms. Vrushali Rajvanshi),Monday,03:15,04:05,3CSE : A1,DBMS,LAB-128-B-BB
+VR (Ms. Vrushali Rajvanshi),Monday,04:05,04:55,3CSE : A1,DBMS,LAB-128-B-BB
+VR (Ms. Vrushali Rajvanshi),Tuesday,09:00,09:55,,,
+VR (Ms. Vrushali Rajvanshi),Tuesday,09:55,10:50,M.Tech,RM,LH - B428B
+VR (Ms. Vrushali Rajvanshi),Tuesday,10:50,11:45,,,
+VR (Ms. Vrushali Rajvanshi),Tuesday,11:45,12:40,3CSE:A,DBMS,LH-03
+VR (Ms. Vrushali Rajvanshi),Tuesday,12:40,01:35,,,
+VR (Ms. Vrushali Rajvanshi),Tuesday,01:35,02:25,3CSE:A,DBMS,LH-426
+VR (Ms. Vrushali Rajvanshi),Tuesday,02:25,03:15,,,
+VR (Ms. Vrushali Rajvanshi),Tuesday,03:15,04:05,3CSE : H1,DBMS,LAB-B227-BB
+VR (Ms. Vrushali Rajvanshi),Tuesday,04:05,04:55,3CSE : H1,DBMS,LAB-B227-BB
+VR (Ms. Vrushali Rajvanshi),Wednesday,09:00,09:55,M.Tech,RM,LH - B428C
+VR (Ms. Vrushali Rajvanshi),Wednesday,09:55,10:50,,,
+VR (Ms. Vrushali Rajvanshi),Wednesday,10:50,11:45,,,
+VR (Ms. Vrushali Rajvanshi),Wednesday,11:45,12:40,3CSE:H,DBMS,LH-06
+VR (Ms. Vrushali Rajvanshi),Wednesday,12:40,01:35,,,
+VR (Ms. Vrushali Rajvanshi),Wednesday,01:35,02:25,,,
+VR (Ms. Vrushali Rajvanshi),Wednesday,02:25,03:15,3CSE:A,DBMS,LH-06
+VR (Ms. Vrushali Rajvanshi),Wednesday,03:15,04:05,3CSE:H,DBMS,LH-12
+VR (Ms. Vrushali Rajvanshi),Wednesday,04:05,04:55,3CSE:H,DBMS,LH-12
+VR (Ms. Vrushali Rajvanshi),Thursday,09:00,09:55,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,09:55,10:50,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,10:50,11:45,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,11:45,12:40,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,12:40,01:35,M.Tech,RM,LH - B425
+VR (Ms. Vrushali Rajvanshi),Thursday,01:35,02:25,3CSE:H,DBMS,LH-426
+VR (Ms. Vrushali Rajvanshi),Thursday,02:25,03:15,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,03:15,04:05,,,
+VR (Ms. Vrushali Rajvanshi),Thursday,04:05,04:55,,,
+VR (Ms. Vrushali Rajvanshi),Friday,09:00,09:55,,,
+VR (Ms. Vrushali Rajvanshi),Friday,09:55,10:50,,,
+VR (Ms. Vrushali Rajvanshi),Friday,10:50,11:45,3CSE : H2,DBMS,LAB-B128-B-BB
+VR (Ms. Vrushali Rajvanshi),Friday,11:45,12:40,3CSE : H2,DBMS,LAB-B128-B-BB
+VR (Ms. Vrushali Rajvanshi),Friday,12:40,01:35,,,
+VR (Ms. Vrushali Rajvanshi),Friday,01:35,02:25,,,
+VR (Ms. Vrushali Rajvanshi),Friday,02:25,03:15,,,
+VR (Ms. Vrushali Rajvanshi),Friday,03:15,04:05,3CSE : A2,DBMS,LAB-B128-A-BB
+VR (Ms. Vrushali Rajvanshi),Friday,04:05,04:55,3CSE : A2,DBMS,LAB-B128-A-BB
+RM (Ms. Ruchi Mishra),Monday,09:00,09:55,3CSE : E1,DE,LAB-6-MB
+RM (Ms. Ruchi Mishra),Monday,09:55,10:50,3CSE : E1,DE,LAB-6-MB
+RM (Ms. Ruchi Mishra),Monday,10:50,11:45,,,
+RM (Ms. Ruchi Mishra),Monday,11:45,12:40,3CSE : D2,DE,LAB-6-BB
+RM (Ms. Ruchi Mishra),Monday,12:40,01:35,3CSE : D2,DE,LAB-6-BB
+RM (Ms. Ruchi Mishra),Monday,01:35,02:25,,,
+RM (Ms. Ruchi Mishra),Monday,02:25,03:15,,,
+RM (Ms. Ruchi Mishra),Monday,03:15,04:05,3CSE : D1,DE,LAB-227-B-BB
+RM (Ms. Ruchi Mishra),Monday,04:05,04:55,3CSE : D1,DE,LAB-227-B-BB
+RM (Ms. Ruchi Mishra),Tuesday,09:00,09:55,,,
+RM (Ms. Ruchi Mishra),Tuesday,09:55,10:50,,,
+RM (Ms. Ruchi Mishra),Tuesday,10:50,11:45,,,
+RM (Ms. Ruchi Mishra),Tuesday,11:45,12:40,,,
+RM (Ms. Ruchi Mishra),Tuesday,12:40,01:35,,,
+RM (Ms. Ruchi Mishra),Tuesday,01:35,02:25,,,
+RM (Ms. Ruchi Mishra),Tuesday,02:25,03:15,3CSE:D,DE,LH-06
+RM (Ms. Ruchi Mishra),Tuesday,03:15,04:05,,,
+RM (Ms. Ruchi Mishra),Tuesday,04:05,04:55,,,
+RM (Ms. Ruchi Mishra),Wednesday,09:00,09:55,,,
+RM (Ms. Ruchi Mishra),Wednesday,09:55,10:50,,,
+RM (Ms. Ruchi Mishra),Wednesday,10:50,11:45,,,
+RM (Ms. Ruchi Mishra),Wednesday,11:45,12:40,3CSE : F2,DE,LAB-4-BB
+RM (Ms. Ruchi Mishra),Wednesday,12:40,01:35,3CSE : F2,DE,LAB-4-BB
+RM (Ms. Ruchi Mishra),Wednesday,01:35,02:25,,,
+RM (Ms. Ruchi Mishra),Wednesday,02:25,03:15,3CSE:D,DE,LH-43
+RM (Ms. Ruchi Mishra),Wednesday,03:15,04:05,3CSE : E2,DE,LAB-6-MB
+RM (Ms. Ruchi Mishra),Wednesday,04:05,04:55,3CSE : E2,DE,LAB-6-MB
+RM (Ms. Ruchi Mishra),Thursday,09:00,09:55,,,
+RM (Ms. Ruchi Mishra),Thursday,09:55,10:50,,,
+RM (Ms. Ruchi Mishra),Thursday,10:50,11:45,,,
+RM (Ms. Ruchi Mishra),Thursday,11:45,12:40,3CSE:E,DE,LH-11
+RM (Ms. Ruchi Mishra),Thursday,12:40,01:35,3CSE:F,DE,LH-05
+RM (Ms. Ruchi Mishra),Thursday,01:35,02:25,,,
+RM (Ms. Ruchi Mishra),Thursday,02:25,03:15,3CSE:F,DE,LH-44
+RM (Ms. Ruchi Mishra),Thursday,03:15,04:05,3CSE:E,DE,LH-03
+RM (Ms. Ruchi Mishra),Thursday,04:05,04:55,,,
+RM (Ms. Ruchi Mishra),Friday,09:00,09:55,,,
+RM (Ms. Ruchi Mishra),Friday,09:55,10:50,3CSE:F,DE,LH-11
+RM (Ms. Ruchi Mishra),Friday,10:50,11:45,,,
+RM (Ms. Ruchi Mishra),Friday,11:45,12:40,3CSE:E,DE,LH-B503
+RM (Ms. Ruchi Mishra),Friday,12:40,01:35,3CSE : F1,DE,LAB-B226-BB
+RM (Ms. Ruchi Mishra),Friday,01:35,02:25,3CSE : F1,DE,LAB-B226-BB
+RM (Ms. Ruchi Mishra),Friday,02:25,03:15,3CSE:D,DE,LH-11
+RM (Ms. Ruchi Mishra),Friday,03:15,04:05,,,
+RM (Ms. Ruchi Mishra),Friday,04:05,04:55,,,
+RP (Ms. Ruchi Patel),Monday,09:00,09:55,5CSE : G2,CN,LAB-B227-A-BB
+RP (Ms. Ruchi Patel),Monday,09:55,10:50,5CSE : G2,CN,LAB-B227-A-BB
+RP (Ms. Ruchi Patel),Monday,10:50,11:45,5CSE:H,CN,LH-12
+RP (Ms. Ruchi Patel),Monday,11:45,12:40,,,
+RP (Ms. Ruchi Patel),Monday,12:40,01:35,5CSE:F,PSC,LH-5
+RP (Ms. Ruchi Patel),Monday,01:35,02:25,5CSE : H1,CN,LAB-B226-BB
+RP (Ms. Ruchi Patel),Monday,02:25,03:15,5CSE : H1,CN,LAB-B226-BB
+RP (Ms. Ruchi Patel),Monday,03:15,04:05,,,
+RP (Ms. Ruchi Patel),Monday,04:05,04:55,,,
+RP (Ms. Ruchi Patel),Tuesday,09:00,09:55,,,
+RP (Ms. Ruchi Patel),Tuesday,09:55,10:50,5CSE:G,CN,LH-6
+RP (Ms. Ruchi Patel),Tuesday,10:50,11:45,,,
+RP (Ms. Ruchi Patel),Tuesday,11:45,12:40,,,
+RP (Ms. Ruchi Patel),Tuesday,12:40,01:35,5CSE:G,CN,LH-19
+RP (Ms. Ruchi Patel),Tuesday,01:35,02:25,5CSE : G1,CN,LAB-6-MB
+RP (Ms. Ruchi Patel),Tuesday,02:25,03:15,5CSE : G1,CN,LAB-6-MB
+RP (Ms. Ruchi Patel),Tuesday,03:15,04:05,,,
+RP (Ms. Ruchi Patel),Tuesday,04:05,04:55,,,
+RP (Ms. Ruchi Patel),Wednesday,09:00,09:55,,,
+RP (Ms. Ruchi Patel),Wednesday,09:55,10:50,,,
+RP (Ms. Ruchi Patel),Wednesday,10:50,11:45,,,
+RP (Ms. Ruchi Patel),Wednesday,11:45,12:40,5CSE:F,PSC,LH-4
+RP (Ms. Ruchi Patel),Wednesday,12:40,01:35,,,
+RP (Ms. Ruchi Patel),Wednesday,01:35,02:25,5CSE:H,CN,LH-6
+RP (Ms. Ruchi Patel),Wednesday,02:25,03:15,5CSE:F,PSC,LH-5
+RP (Ms. Ruchi Patel),Wednesday,03:15,04:05,,,
+RP (Ms. Ruchi Patel),Wednesday,04:05,04:55,,,
+RP (Ms. Ruchi Patel),Thursday,09:00,09:55,5CSE : F2,PSC,LAB-B227-B-BB
+RP (Ms. Ruchi Patel),Thursday,09:55,10:50,5CSE : F2,PSC,LAB-B227-B-BB
+RP (Ms. Ruchi Patel),Thursday,10:50,11:45,5CSE:G,CN,LH-3
+RP (Ms. Ruchi Patel),Thursday,11:45,12:40,,,
+RP (Ms. Ruchi Patel),Thursday,12:40,01:35,,,
+RP (Ms. Ruchi Patel),Thursday,01:35,02:25,5CSE : H2,CN,LAB-B226-BB
+RP (Ms. Ruchi Patel),Thursday,02:25,03:15,5CSE : H2,CN,LAB-B226-BB
+RP (Ms. Ruchi Patel),Thursday,03:15,04:05,,,
+RP (Ms. Ruchi Patel),Thursday,04:05,04:55,,,
+RP (Ms. Ruchi Patel),Friday,09:00,09:55,,,
+RP (Ms. Ruchi Patel),Friday,09:55,10:50,5CSE:H,CN,LH-6
+RP (Ms. Ruchi Patel),Friday,10:50,11:45,5CSE : F1,PSC,LAB-B128-A-BB
+RP (Ms. Ruchi Patel),Friday,11:45,12:40,5CSE : F1,PSC,LAB-B128-A-BB
+RP (Ms. Ruchi Patel),Friday,12:40,01:35,,,
+RP (Ms. Ruchi Patel),Friday,01:35,02:25,,,
+RP (Ms. Ruchi Patel),Friday,02:25,03:15,,,
+RP (Ms. Ruchi Patel),Friday,03:15,04:05,,,
+RP (Ms. Ruchi Patel),Friday,04:05,04:55,,,
+DP (Mr. Deep Paun),Monday,09:00,09:55,5CSE:C,PSC,LH-5
+DP (Mr. Deep Paun),Monday,09:55,10:50,,,
+DP (Mr. Deep Paun),Monday,10:50,11:45,,,
+DP (Mr. Deep Paun),Monday,11:45,12:40,,,
+DP (Mr. Deep Paun),Monday,12:40,01:35,3CSE:B,OOCP,LH-11
+DP (Mr. Deep Paun),Monday,01:35,02:25,,,
+DP (Mr. Deep Paun),Monday,02:25,03:15,,,
+DP (Mr. Deep Paun),Monday,03:15,04:05,3CSE : A2,OOCP,LAB-04-BB
+DP (Mr. Deep Paun),Monday,04:05,04:55,3CSE : A2,OOCP,LAB-04-BB
+DP (Mr. Deep Paun),Tuesday,09:00,09:55,5CSE : C1,PSC,LAB-6-BB
+DP (Mr. Deep Paun),Tuesday,09:55,10:50,5CSE : C1,PSC,LAB-6-BB
+DP (Mr. Deep Paun),Tuesday,10:50,11:45,,,
+DP (Mr. Deep Paun),Tuesday,11:45,12:40,,,
+DP (Mr. Deep Paun),Tuesday,12:40,01:35,3CSE:B,OOCP,LH-05
+DP (Mr. Deep Paun),Tuesday,01:35,02:25,,,
+DP (Mr. Deep Paun),Tuesday,02:25,03:15,,,
+DP (Mr. Deep Paun),Tuesday,03:15,04:05,3CSE:A,OOCP,LH-46
+DP (Mr. Deep Paun),Tuesday,04:05,04:55,,,
+DP (Mr. Deep Paun),Wednesday,09:00,09:55,,,
+DP (Mr. Deep Paun),Wednesday,09:55,10:50,5CSE:C,PSC,LH-5
+DP (Mr. Deep Paun),Wednesday,10:50,11:45,,,
+DP (Mr. Deep Paun),Wednesday,11:45,12:40,,,
+DP (Mr. Deep Paun),Wednesday,12:40,01:35,3CSE:A,OOCP,LH-08
+DP (Mr. Deep Paun),Wednesday,01:35,02:25,,,
+DP (Mr. Deep Paun),Wednesday,02:25,03:15,3CSE:B,OOCP,B-002*
+DP (Mr. Deep Paun),Wednesday,03:15,04:05,3CSE : B1,OOCP,LAB-128-B-BB
+DP (Mr. Deep Paun),Wednesday,04:05,04:55,3CSE : B1,OOCP,LAB-128-B-BB
+DP (Mr. Deep Paun),Thursday,09:00,09:55,5CSE : C2,PSC,LAB-B128-A-BB
+DP (Mr. Deep Paun),Thursday,09:55,10:50,5CSE : C2,PSC,LAB-B128-A-BB
+DP (Mr. Deep Paun),Thursday,10:50,11:45,,,
+DP (Mr. Deep Paun),Thursday,11:45,12:40,,,
+DP (Mr. Deep Paun),Thursday,12:40,01:35,,,
+DP (Mr. Deep Paun),Thursday,01:35,02:25,,,
+DP (Mr. Deep Paun),Thursday,02:25,03:15,3CSE:A,OOCP,LH-503
+DP (Mr. Deep Paun),Thursday,03:15,04:05,3CSE : A1,OOCP,LAB-B128-A-BB
+DP (Mr. Deep Paun),Thursday,04:05,04:55,3CSE : A1,OOCP,LAB-B128-A-BB
+DP (Mr. Deep Paun),Friday,09:00,09:55,5CSE:C,PSC,LH-12
+DP (Mr. Deep Paun),Friday,09:55,10:50,,,
+DP (Mr. Deep Paun),Friday,10:50,11:45,,,
+DP (Mr. Deep Paun),Friday,11:45,12:40,,,
+DP (Mr. Deep Paun),Friday,12:40,01:35,,,
+DP (Mr. Deep Paun),Friday,01:35,02:25,,,
+DP (Mr. Deep Paun),Friday,02:25,03:15,,,
+DP (Mr. Deep Paun),Friday,03:15,04:05,3CSE : B2,OOCP,LAB-B128-B-BB
+DP (Mr. Deep Paun),Friday,04:05,04:55,3CSE : B2,OOCP,LAB-B128-B-BB
+NB (Ms. Namrata Bharambhatt),Monday,09:00,09:55,,,
+NB (Ms. Namrata Bharambhatt),Monday,09:55,10:50,,,
+NB (Ms. Namrata Bharambhatt),Monday,10:50,11:45,,,
+NB (Ms. Namrata Bharambhatt),Monday,11:45,12:40,5CSE:A,PSC,LH-3
+NB (Ms. Namrata Bharambhatt),Monday,12:40,01:35,5CSE : D2,PSC,LAB-B227-A-BB
+NB (Ms. Namrata Bharambhatt),Monday,01:35,02:25,5CSE : D2,PSC,LAB-B227-A-BB
+NB (Ms. Namrata Bharambhatt),Monday,02:25,03:15,5CSE:E,PSC,LH-4
+NB (Ms. Namrata Bharambhatt),Monday,03:15,04:05,,,
+NB (Ms. Namrata Bharambhatt),Monday,04:05,04:55,,,
+NB (Ms. Namrata Bharambhatt),Tuesday,09:00,09:55,5CSE:A,PSC,LH-3
+NB (Ms. Namrata Bharambhatt),Tuesday,09:55,10:50,5CSE:E,PSC,LH-4
+NB (Ms. Namrata Bharambhatt),Tuesday,10:50,11:45,,,
+NB (Ms. Namrata Bharambhatt),Tuesday,11:45,12:40,,,
+NB (Ms. Namrata Bharambhatt),Tuesday,12:40,01:35,5CSE : A2,PSC,LAB-B227-BB
+NB (Ms. Namrata Bharambhatt),Tuesday,01:35,02:25,5CSE : A2,PSC,LAB-B227-BB
+NB (Ms. Namrata Bharambhatt),Tuesday,02:25,03:15,,,
+NB (Ms. Namrata Bharambhatt),Tuesday,03:15,04:05,,,
+NB (Ms. Namrata Bharambhatt),Tuesday,04:05,04:55,,,
+NB (Ms. Namrata Bharambhatt),Wednesday,09:00,09:55,5CSE:D,PSC,LH-6
+NB (Ms. Namrata Bharambhatt),Wednesday,09:55,10:50,5CSE : E1,PSC,LAB-B128-A-BB
+NB (Ms. Namrata Bharambhatt),Wednesday,10:50,11:45,5CSE : E1,PSC,LAB-B128-A-BB
+NB (Ms. Namrata Bharambhatt),Wednesday,11:45,12:40,,,
+NB (Ms. Namrata Bharambhatt),Wednesday,12:40,01:35,,,
+NB (Ms. Namrata Bharambhatt),Wednesday,01:35,02:25,5CSE : D1,PSC,LAB-B128-A-BB
+NB (Ms. Namrata Bharambhatt),Wednesday,02:25,03:15,5CSE : D1,PSC,LAB-B128-A-BB
+NB (Ms. Namrata Bharambhatt),Wednesday,03:15,04:05,,,
+NB (Ms. Namrata Bharambhatt),Wednesday,04:05,04:55,,,
+NB (Ms. Namrata Bharambhatt),Thursday,09:00,09:55,5CSE : A1,PSC,LAB-3-BB
+NB (Ms. Namrata Bharambhatt),Thursday,09:55,10:50,5CSE : A1,PSC,LAB-3-BB
+NB (Ms. Namrata Bharambhatt),Thursday,10:50,11:45,5CSE:D,PSC,LH-6
+NB (Ms. Namrata Bharambhatt),Thursday,11:45,12:40,,,
+NB (Ms. Namrata Bharambhatt),Thursday,12:40,01:35,,,
+NB (Ms. Namrata Bharambhatt),Thursday,01:35,02:25,5CSE:E,PSC,LH-B425
+NB (Ms. Namrata Bharambhatt),Thursday,02:25,03:15,5CSE:A,PSC,LH-B426
+NB (Ms. Namrata Bharambhatt),Thursday,03:15,04:05,,,
+NB (Ms. Namrata Bharambhatt),Thursday,04:05,04:55,,,
+NB (Ms. Namrata Bharambhatt),Friday,09:00,09:55,5CSE : E2,PSC,LAB-B128-B-BB
+NB (Ms. Namrata Bharambhatt),Friday,09:55,10:50,5CSE : E2,PSC,LAB-B128-B-BB
+NB (Ms. Namrata Bharambhatt),Friday,10:50,11:45,,,
+NB (Ms. Namrata Bharambhatt),Friday,11:45,12:40,,,
+NB (Ms. Namrata Bharambhatt),Friday,12:40,01:35,,,
+NB (Ms. Namrata Bharambhatt),Friday,01:35,02:25,,,
+NB (Ms. Namrata Bharambhatt),Friday,02:25,03:15,5CSE:D,PSC,LH-5
+NB (Ms. Namrata Bharambhatt),Friday,03:15,04:05,,,
+NB (Ms. Namrata Bharambhatt),Friday,04:05,04:55,,,
+Mr. Abhishek Dabhi (Visiting),Monday,09:00,09:55,,,
+Mr. Abhishek Dabhi (Visiting),Monday,09:55,10:50,3CSE:C,DE,LH-11
+Mr. Abhishek Dabhi (Visiting),Monday,10:50,11:45,,,
+Mr. Abhishek Dabhi (Visiting),Monday,11:45,12:40,3CSE : I2,DE,LAB-128-A-BB
+Mr. Abhishek Dabhi (Visiting),Monday,12:40,01:35,3CSE : I2,DE,LAB-128-A-BB
+Mr. Abhishek Dabhi (Visiting),Monday,01:35,02:25,,,
+Mr. Abhishek Dabhi (Visiting),Monday,02:25,03:15,3CSE:I,DE,LH-44
+Mr. Abhishek Dabhi (Visiting),Monday,03:15,04:05,3CSE:B,DE,LH-04
+Mr. Abhishek Dabhi (Visiting),Monday,04:05,04:55,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,09:00,09:55,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,09:55,10:50,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,10:50,11:45,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,11:45,12:40,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,12:40,01:35,3CSE:C,DE,LH-06
+Mr. Abhishek Dabhi (Visiting),Tuesday,01:35,02:25,,,
+Mr. Abhishek Dabhi (Visiting),Tuesday,02:25,03:15,3CSE:B,DE,LH-503
+Mr. Abhishek Dabhi (Visiting),Tuesday,03:15,04:05,3CSE : I2,DE,LAB-6-MB
+Mr. Abhishek Dabhi (Visiting),Tuesday,04:05,04:55,3CSE : I2,DE,LAB-6-MB
+Mr. Abhishek Dabhi (Visiting),Wednesday,09:00,09:55,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,09:55,10:50,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,10:50,11:45,3CSE : C2,DE,LAB-226-BB
+Mr. Abhishek Dabhi (Visiting),Wednesday,11:45,12:40,3CSE : C2,DE,LAB-226-BB
+Mr. Abhishek Dabhi (Visiting),Wednesday,12:40,01:35,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,01:35,02:25,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,02:25,03:15,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,03:15,04:05,,,
+Mr. Abhishek Dabhi (Visiting),Wednesday,04:05,04:55,,,
+Mr. Abhishek Dabhi (Visiting),Thursday,09:00,09:55,,,
+Mr. Abhishek Dabhi (Visiting),Thursday,09:55,10:50,,,
+Mr. Abhishek Dabhi (Visiting),Thursday,10:50,11:45,3CSE:B,DE,LH-11
+Mr. Abhishek Dabhi (Visiting),Thursday,11:45,12:40,3CSE : B2,DE,LAB-227-A-BB
+Mr. Abhishek Dabhi (Visiting),Thursday,12:40,01:35,3CSE : B2,DE,LAB-227-A-BB
+Mr. Abhishek Dabhi (Visiting),Thursday,01:35,02:25,,,
+Mr. Abhishek Dabhi (Visiting),Thursday,02:25,03:15,3CSE:I,DE,LH-12
+Mr. Abhishek Dabhi (Visiting),Thursday,03:15,04:05,3CSE : C1,DE,LAB-B-227-B-BB
+Mr. Abhishek Dabhi (Visiting),Thursday,04:05,04:55,3CSE : C1,DE,LAB-B-227-B-BB
+Mr. Abhishek Dabhi (Visiting),Friday,09:00,09:55,,,
+Mr. Abhishek Dabhi (Visiting),Friday,09:55,10:50,3CSE:C,DE,LH-05
+Mr. Abhishek Dabhi (Visiting),Friday,10:50,11:45,,,
+Mr. Abhishek Dabhi (Visiting),Friday,11:45,12:40,,,
+Mr. Abhishek Dabhi (Visiting),Friday,12:40,01:35,,,
+Mr. Abhishek Dabhi (Visiting),Friday,01:35,02:25,,,
+Mr. Abhishek Dabhi (Visiting),Friday,02:25,03:15,3CSE:I,DE,LH-06
+Mr. Abhishek Dabhi (Visiting),Friday,03:15,04:05,3CSE : B1,DE,LAB-B227-A-BB
+Mr. Abhishek Dabhi (Visiting),Friday,04:05,04:55,3CSE : B1,DE,LAB-B227-A-BB
+KR (Mr. Kelvin Rathod) (Visiting),Monday,09:00,09:55,5CSE : D2,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Monday,09:55,10:50,5CSE : D2,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Monday,10:50,11:45,,,
+KR (Mr. Kelvin Rathod) (Visiting),Monday,11:45,12:40,5CSE:G,AMP,LH-11
+KR (Mr. Kelvin Rathod) (Visiting),Monday,12:40,01:35,5CSE : D1,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Monday,01:35,02:25,5CSE : D1,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Monday,02:25,03:15,5CSE:G,AMP,LH-43
+KR (Mr. Kelvin Rathod) (Visiting),Monday,03:15,04:05,,,
+KR (Mr. Kelvin Rathod) (Visiting),Monday,04:05,04:55,,,
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,09:00,09:55,5CSE : B1,AMP,LAB-B226-BB
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,09:55,10:50,5CSE : B1,AMP,LAB-B226-BB
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,10:50,11:45,5CSE:D,AMP,LH-4
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,11:45,12:40,,,
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,12:40,01:35,5CSE:B,AMP,LH-4
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,01:35,02:25,5CSE:B,AMP,LH-6
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,02:25,03:15,,,
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,03:15,04:05,,,
+KR (Mr. Kelvin Rathod) (Visiting),Tuesday,04:05,04:55,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,09:00,09:55,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,09:55,10:50,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,10:50,11:45,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,11:45,12:40,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,12:40,01:35,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,01:35,02:25,5CSE : G2,AMP,LAB-B227-A-BB
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,02:25,03:15,5CSE : G2,AMP,LAB-B227-A-BB
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,03:15,04:05,,,
+KR (Mr. Kelvin Rathod) (Visiting),Wednesday,04:05,04:55,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,09:00,09:55,5CSE:G,AMP,LH-3
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,09:55,10:50,5CSE:D,AMP,LH-6
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,10:50,11:45,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,11:45,12:40,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,12:40,01:35,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,01:35,02:25,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,02:25,03:15,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,03:15,04:05,,,
+KR (Mr. Kelvin Rathod) (Visiting),Thursday,04:05,04:55,,,
+KR (Mr. Kelvin Rathod) (Visiting),Friday,09:00,09:55,5CSE:D,AMP,LH-3
+KR (Mr. Kelvin Rathod) (Visiting),Friday,09:55,10:50,5CSE:B,AMP,LH-4
+KR (Mr. Kelvin Rathod) (Visiting),Friday,10:50,11:45,5CSE : B2,AMP,LAB-B127-A-BB
+KR (Mr. Kelvin Rathod) (Visiting),Friday,11:45,12:40,5CSE : B2,AMP,LAB-B127-A-BB
+KR (Mr. Kelvin Rathod) (Visiting),Friday,12:40,01:35,,,
+KR (Mr. Kelvin Rathod) (Visiting),Friday,01:35,02:25,5CSE : G1,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Friday,02:25,03:15,5CSE : G1,AMP,LAB-B227-B-BB
+KR (Mr. Kelvin Rathod) (Visiting),Friday,03:15,04:05,,,
+KR (Mr. Kelvin Rathod) (Visiting),Friday,04:05,04:55,,,
+RH (Ms. Riddhi Harsora),Monday,09:00,09:55,5CSE:E,DAA,LH-3
+RH (Ms. Riddhi Harsora),Monday,09:55,10:50,,,
+RH (Ms. Riddhi Harsora),Monday,10:50,11:45,5CSE:F,DAA,LH-6
+RH (Ms. Riddhi Harsora),Monday,11:45,12:40,5CSE : E1,DAA,LAB-4-BB
+RH (Ms. Riddhi Harsora),Monday,12:40,01:35,5CSE : E1,DAA,LAB-4-BB
+RH (Ms. Riddhi Harsora),Monday,01:35,02:25,,,
+RH (Ms. Riddhi Harsora),Monday,02:25,03:15,5CSE:F,DAA,LH-5
+RH (Ms. Riddhi Harsora),Monday,03:15,04:05,,,
+RH (Ms. Riddhi Harsora),Monday,04:05,04:55,,,
+RH (Ms. Riddhi Harsora),Tuesday,09:00,09:55,5CSE : D1,CN,LAB-B227-B-BB
+RH (Ms. Riddhi Harsora),Tuesday,09:55,10:50,5CSE : D1,CN,LAB-B227-B-BB
+RH (Ms. Riddhi Harsora),Tuesday,10:50,11:45,,,
+RH (Ms. Riddhi Harsora),Tuesday,11:45,12:40,,,
+RH (Ms. Riddhi Harsora),Tuesday,12:40,01:35,5CSE:D,CN,LH-3
+RH (Ms. Riddhi Harsora),Tuesday,01:35,02:25,5CSE : F2,DAA,LAB-B226-BB
+RH (Ms. Riddhi Harsora),Tuesday,02:25,03:15,5CSE : F2,DAA,LAB-B226-BB
+RH (Ms. Riddhi Harsora),Tuesday,03:15,04:05,,,
+RH (Ms. Riddhi Harsora),Tuesday,04:05,04:55,,,
+RH (Ms. Riddhi Harsora),Wednesday,09:00,09:55,5CSE:E,DAA,LH-4
+RH (Ms. Riddhi Harsora),Wednesday,09:55,10:50,5CSE : E2,DAA,LAB-B128-B-BB
+RH (Ms. Riddhi Harsora),Wednesday,10:50,11:45,5CSE : E2,DAA,LAB-B128-B-BB
+RH (Ms. Riddhi Harsora),Wednesday,11:45,12:40,,,
+RH (Ms. Riddhi Harsora),Wednesday,12:40,01:35,,,
+RH (Ms. Riddhi Harsora),Wednesday,01:35,02:25,5CSE : D2,CN,LAB-B226-BB
+RH (Ms. Riddhi Harsora),Wednesday,02:25,03:15,5CSE : D2,CN,LAB-B226-BB
+RH (Ms. Riddhi Harsora),Wednesday,03:15,04:05,,,
+RH (Ms. Riddhi Harsora),Wednesday,04:05,04:55,,,
+RH (Ms. Riddhi Harsora),Thursday,09:00,09:55,5CSE:D,CN,LH-6
+RH (Ms. Riddhi Harsora),Thursday,09:55,10:50,,,
+RH (Ms. Riddhi Harsora),Thursday,10:50,11:45,,,
+RH (Ms. Riddhi Harsora),Thursday,11:45,12:40,,,
+RH (Ms. Riddhi Harsora),Thursday,12:40,01:35,,,
+RH (Ms. Riddhi Harsora),Thursday,01:35,02:25,,,
+RH (Ms. Riddhi Harsora),Thursday,02:25,03:15,5CSE:E,DAA,LH-B425
+RH (Ms. Riddhi Harsora),Thursday,03:15,04:05,,,
+RH (Ms. Riddhi Harsora),Thursday,04:05,04:55,,,
+RH (Ms. Riddhi Harsora),Friday,09:00,09:55,5CSE : F1,DAA,LAB-4-BB
+RH (Ms. Riddhi Harsora),Friday,09:55,10:50,5CSE : F1,DAA,LAB-4-BB
+RH (Ms. Riddhi Harsora),Friday,10:50,11:45,5CSE:D,CN,LH-4
+RH (Ms. Riddhi Harsora),Friday,11:45,12:40,,,
+RH (Ms. Riddhi Harsora),Friday,12:40,01:35,,,
+RH (Ms. Riddhi Harsora),Friday,01:35,02:25,,,
+RH (Ms. Riddhi Harsora),Friday,02:25,03:15,5CSE:F,DAA,LH-B426
+RH (Ms. Riddhi Harsora),Friday,03:15,04:05,,,
+RH (Ms. Riddhi Harsora),Friday,04:05,04:55,,,
+DM (Mr. Divyang Makwana),Monday,09:00,09:55,,,
+DM (Mr. Divyang Makwana),Monday,09:55,10:50,5CSE:B,CN,LH-4
+DM (Mr. Divyang Makwana),Monday,10:50,11:45,,,
+DM (Mr. Divyang Makwana),Monday,11:45,12:40,,,
+DM (Mr. Divyang Makwana),Monday,12:40,01:35,,,
+DM (Mr. Divyang Makwana),Monday,01:35,02:25,5CSE : B2,CN,LAB-B128-A-BB
+DM (Mr. Divyang Makwana),Monday,02:25,03:15,5CSE : B2,CN,LAB-B128-A-BB
+DM (Mr. Divyang Makwana),Monday,03:15,04:05,,,
+DM (Mr. Divyang Makwana),Monday,04:05,04:55,,,
+DM (Mr. Divyang Makwana),Tuesday,09:00,09:55,5CSE:F,CN,LH-12
+DM (Mr. Divyang Makwana),Tuesday,09:55,10:50,,,
+DM (Mr. Divyang Makwana),Tuesday,10:50,11:45,M.Tech,DS,LAB - B128-B-BB
+DM (Mr. Divyang Makwana),Tuesday,11:45,12:40,M.Tech,DS,LAB - B128-B-BB
+DM (Mr. Divyang Makwana),Tuesday,12:40,01:35,5CSE:F,CN,LH-14
+DM (Mr. Divyang Makwana),Tuesday,01:35,02:25,5CSE : F1,CN,LAB-B227-B-BB
+DM (Mr. Divyang Makwana),Tuesday,02:25,03:15,5CSE : F1,CN,LAB-B227-B-BB
+DM (Mr. Divyang Makwana),Tuesday,03:15,04:05,,,
+DM (Mr. Divyang Makwana),Tuesday,04:05,04:55,,,
+DM (Mr. Divyang Makwana),Wednesday,09:00,09:55,5CSE : B1,CN,LAB-6-MB
+DM (Mr. Divyang Makwana),Wednesday,09:55,10:50,5CSE : B1,CN,LAB-6-MB
+DM (Mr. Divyang Makwana),Wednesday,10:50,11:45,5CSE:B,CN,LH-4
+DM (Mr. Divyang Makwana),Wednesday,11:45,12:40,,,
+DM (Mr. Divyang Makwana),Wednesday,12:40,01:35,,,
+DM (Mr. Divyang Makwana),Wednesday,01:35,02:25,,,
+DM (Mr. Divyang Makwana),Wednesday,02:25,03:15,,,
+DM (Mr. Divyang Makwana),Wednesday,03:15,04:05,M.Tech,DS,LH - B427C
+DM (Mr. Divyang Makwana),Wednesday,04:05,04:55,M.Tech,DS,LH - B427C
+DM (Mr. Divyang Makwana),Thursday,09:00,09:55,,,
+DM (Mr. Divyang Makwana),Thursday,09:55,10:50,,,
+DM (Mr. Divyang Makwana),Thursday,10:50,11:45,,,
+DM (Mr. Divyang Makwana),Thursday,11:45,12:40,,,
+DM (Mr. Divyang Makwana),Thursday,12:40,01:35,,,
+DM (Mr. Divyang Makwana),Thursday,01:35,02:25,5CSE:F,CN,LH-4
+DM (Mr. Divyang Makwana),Thursday,02:25,03:15,,,
+DM (Mr. Divyang Makwana),Thursday,03:15,04:05,,,
+DM (Mr. Divyang Makwana),Thursday,04:05,04:55,,,
+DM (Mr. Divyang Makwana),Friday,09:00,09:55,5CSE : F2,CN,LAB-6-MB
+DM (Mr. Divyang Makwana),Friday,09:55,10:50,5CSE : F2,CN,LAB-6-MB
+DM (Mr. Divyang Makwana),Friday,10:50,11:45,M.Tech,DS,LH - B427B
+DM (Mr. Divyang Makwana),Friday,11:45,12:40,,,
+DM (Mr. Divyang Makwana),Friday,12:40,01:35,,,
+DM (Mr. Divyang Makwana),Friday,01:35,02:25,,,
+DM (Mr. Divyang Makwana),Friday,02:25,03:15,5CSE:B,CN,LH-4
+DM (Mr. Divyang Makwana),Friday,03:15,04:05,,,
+DM (Mr. Divyang Makwana),Friday,04:05,04:55,,,
+UR (Ms. Urvi Rabara),Monday,09:00,09:55,,,
+UR (Ms. Urvi Rabara),Monday,09:55,10:50,,,
+UR (Ms. Urvi Rabara),Monday,10:50,11:45,,,
+UR (Ms. Urvi Rabara),Monday,11:45,12:40,,,
+UR (Ms. Urvi Rabara),Monday,12:40,01:35,,,
+UR (Ms. Urvi Rabara),Monday,01:35,02:25,,,
+UR (Ms. Urvi Rabara),Monday,02:25,03:15,,,
+UR (Ms. Urvi Rabara),Monday,03:15,04:05,,,
+UR (Ms. Urvi Rabara),Monday,04:05,04:55,,,
+UR (Ms. Urvi Rabara),Tuesday,09:00,09:55,3CSE:F,ICT,
+UR (Ms. Urvi Rabara),Tuesday,09:55,10:50,,,
+UR (Ms. Urvi Rabara),Tuesday,10:50,11:45,,,
+UR (Ms. Urvi Rabara),Tuesday,11:45,12:40,,,
+UR (Ms. Urvi Rabara),Tuesday,12:40,01:35,,,
+UR (Ms. Urvi Rabara),Tuesday,01:35,02:25,,,
+UR (Ms. Urvi Rabara),Tuesday,02:25,03:15,M.Tech,ML,LH - B525
+UR (Ms. Urvi Rabara),Tuesday,03:15,04:05,,,
+UR (Ms. Urvi Rabara),Tuesday,04:05,04:55,,,
+UR (Ms. Urvi Rabara),Wednesday,09:00,09:55,,,
+UR (Ms. Urvi Rabara),Wednesday,09:55,10:50,M.Tech,ML,LAB - 3 - BB
+UR (Ms. Urvi Rabara),Wednesday,10:50,11:45,M.Tech,ML,LAB - 3 - BB
+UR (Ms. Urvi Rabara),Wednesday,11:45,12:40,,,
+UR (Ms. Urvi Rabara),Wednesday,12:40,01:35,3CSE:E,ICT,
+UR (Ms. Urvi Rabara),Wednesday,01:35,02:25,,,
+UR (Ms. Urvi Rabara),Wednesday,02:25,03:15,,,
+UR (Ms. Urvi Rabara),Wednesday,03:15,04:05,3CSE:I,ICT,
+UR (Ms. Urvi Rabara),Wednesday,04:05,04:55,,,
+UR (Ms. Urvi Rabara),Thursday,09:00,09:55,,,
+UR (Ms. Urvi Rabara),Thursday,09:55,10:50,3CSE:G,ICT,
+UR (Ms. Urvi Rabara),Thursday,10:50,11:45,,,
+UR (Ms. Urvi Rabara),Thursday,11:45,12:40,M.Tech,ML,LH - B425
+UR (Ms. Urvi Rabara),Thursday,12:40,01:35,,,
+UR (Ms. Urvi Rabara),Thursday,01:35,02:25,,,
+UR (Ms. Urvi Rabara),Thursday,02:25,03:15,,,
+UR (Ms. Urvi Rabara),Thursday,03:15,04:05,,,
+UR (Ms. Urvi Rabara),Thursday,04:05,04:55,,,
+UR (Ms. Urvi Rabara),Friday,09:00,09:55,,,
+UR (Ms. Urvi Rabara),Friday,09:55,10:50,,,
+UR (Ms. Urvi Rabara),Friday,10:50,11:45,,,
+UR (Ms. Urvi Rabara),Friday,11:45,12:40,,,
+UR (Ms. Urvi Rabara),Friday,12:40,01:35,,,
+UR (Ms. Urvi Rabara),Friday,01:35,02:25,,,
+UR (Ms. Urvi Rabara),Friday,02:25,03:15,,,
+UR (Ms. Urvi Rabara),Friday,03:15,04:05,M.Tech,ML,LH - 5
+UR (Ms. Urvi Rabara),Friday,04:05,04:55,,,
+`;
+
+        // Parse and optimize data on load
+        let timetableData = parseCSV(csvData);
+        let allFaculty = [...new Set(timetableData.map(row => row.Faculty))].sort();
+        
+        // Pre-calculate workload data for optimization
+        let facultyWorkload = {};
+        
+        function initializeWorkloadData() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             
-            if (data.length === 0) {
-                showError('Excel file is empty');
-                return;
-            }
-
-            const firstRow = data[0];
-            const missingColumns = requiredColumns.filter(col => !(col in firstRow));
-            
-            if (missingColumns.length > 0) {
-                showError(`Missing required columns: ${missingColumns.join(', ')}`);
-                return;
-            }
-
-            // Process and clean data
-            timetableData = data.map(row => ({
-                faculty: String(row['Faculty'] || '').trim(),
-                day: String(row['Day'] || '').trim(),
-                startTime: String(row['Start Time'] || '').trim(),
-                endTime: String(row['End Time'] || '').trim(),
-                division: String(row['Division'] || '').trim(),
-                subject: String(row['Subject'] || '').trim(),
-                location: String(row['Location'] || '').trim()
-            })).filter(row => row.faculty && row.day);
-
-            // Extract unique faculty list
-            facultyList = [...new Set(timetableData.map(row => row.faculty))].sort();
-            
-            populateFacultyDropdown();
-            showSuccess(`Successfully loaded ${timetableData.length} records for ${facultyList.length} faculty members`);
-            controlsSection.classList.remove('hidden');
-            updateButtonStates();
-        }
-
-        // Populate faculty dropdown
-        function populateFacultyDropdown() {
-            facultySelect.innerHTML = '<option value="">All Faculty</option>';
-            facultyList.forEach(faculty => {
-                const option = document.createElement('option');
-                option.value = faculty;
-                option.textContent = faculty;
-                facultySelect.appendChild(option);
+            allFaculty.forEach(faculty => {
+                facultyWorkload[faculty] = {};
+                days.forEach(day => {
+                    facultyWorkload[faculty][day] = timetableData.filter(row => 
+                        row.Faculty === faculty && 
+                        row.Day === day && 
+                        row.Division && 
+                        row.Subject
+                    ).length;
+                });
             });
         }
 
-        // Update button states
-        function updateButtonStates() {
-            const day = daySelect.value;
-            const timeSlot = timeSlotSelect.value;
-            const faculty = facultySelect.value;
-            
-            checkSingleBtn.disabled = !(day && timeSlot && faculty);
-            checkAllBtn.disabled = !(day && timeSlot);
+        // Calculate faculty workload for a specific day (optimized)
+        function calculateDayWorkload(facultyName, day) {
+            return facultyWorkload[facultyName] ? facultyWorkload[facultyName][day] || 0 : 0;
         }
 
         // Check single faculty availability
         function checkSingleFaculty() {
-            const day = daySelect.value;
-            const timeSlot = timeSlotSelect.value;
-            const faculty = facultySelect.value;
-            
-            if (!day || !timeSlot || !faculty) {
-                showError('Please select day, time slot, and faculty');
+            const faculty = document.getElementById('facultySelect').value;
+            const day = document.getElementById('daySelect').value;
+            const time = document.getElementById('timeSelect').value;
+
+            if (!faculty) {
+                document.getElementById('facultyNote').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('facultyNote').style.display = 'none';
+                }, 3000);
                 return;
             }
 
-            const availability = getFacultyAvailability(faculty, day, timeSlot);
-            displaySingleResult(faculty, day, timeSlot, availability);
+            if (!day || !time) {
+                alert('Please select both day and time slot');
+                return;
+            }
+
+            document.getElementById('facultyNote').style.display = 'none';
+            
+            // Show loading briefly for user feedback
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('loadingText').textContent = `Checking availability for ${faculty}...`;
+            document.getElementById('resultsSection').style.display = 'none';
+
+            setTimeout(() => {
+                checkAvailability(faculty, day, time, 'single');
+            }, 200);
         }
 
         // Check all faculty availability
         function checkAllFaculty() {
-            const day = daySelect.value;
-            const timeSlot = timeSlotSelect.value;
-            
-            if (!day || !timeSlot) {
-                showError('Please select day and time slot');
+            const day = document.getElementById('daySelect').value;
+            const time = document.getElementById('timeSelect').value;
+
+            if (!day || !time) {
+                alert('Please select both day and time slot');
                 return;
             }
 
-            const results = facultyList.map(faculty => ({
-                faculty,
-                availability: getFacultyAvailability(faculty, day, timeSlot)
-            }));
-
-            displayAllResults(day, timeSlot, results);
-        }
-
-        // Get faculty availability for specific day and time slot
-        function getFacultyAvailability(faculty, day, timeSlot) {
-            const slot = timeSlots[timeSlot];
-            if (!slot) return { status: 'unknown', details: null };
-
-            // Find matching record
-            const record = timetableData.find(row => 
-                row.faculty === faculty && 
-                row.day === day && 
-                row.startTime === slot.start && 
-                row.endTime === slot.end
-            );
-
-            if (!record) {
-                return { status: 'free', details: null };
-            }
-
-            // Check if the record has division, subject, and location (indicating busy)
-            if (record.division || record.subject || record.location) {
-                return {
-                    status: 'busy',
-                    details: {
-                        division: record.division,
-                        subject: record.subject,
-                        location: record.location
-                    }
-                };
-            }
-
-            return { status: 'free', details: null };
-        }
-
-        // Display single faculty result
-        function displaySingleResult(faculty, day, timeSlot, availability) {
-            const content = document.getElementById('singleResultContent');
+            document.getElementById('facultyNote').style.display = 'none';
             
-            let statusHtml = '';
-            if (availability.status === 'free') {
-                statusHtml = `
-                    <div class="status-card status-free">
-                        <div class="status-header">
-                            <i class="fas fa-check-circle status-icon"></i>
-                            <div>
-                                <h3 class="status-title">FREE</h3>
-                                <p style="margin: 0; color: var(--text-secondary);">${faculty} is available</p>
-                            </div>
-                        </div>
-                        <div style="background: rgba(79, 172, 254, 0.1); padding: 1rem; border-radius: 12px; margin-top: 1rem;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem; color: #4facfe;"></i>
-                                <strong>Day:</strong> <span style="margin-left: 0.5rem;">${day}</span>
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <i class="fas fa-clock" style="margin-right: 0.5rem; color: #4facfe;"></i>
-                                <strong>Time:</strong> <span style="margin-left: 0.5rem; font-family: monospace;">${timeSlot}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (availability.status === 'busy') {
-                statusHtml = `
-                    <div class="status-card status-busy">
-                        <div class="status-header">
-                            <i class="fas fa-times-circle status-icon"></i>
-                            <div>
-                                <h3 class="status-title">BUSY</h3>
-                                <p style="margin: 0; color: var(--text-secondary);">${faculty} is occupied</p>
-                            </div>
-                        </div>
-                        <div style="background: rgba(250, 112, 154, 0.1); padding: 1rem; border-radius: 12px; margin-top: 1rem;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <i class="fas fa-calendar-day" style="margin-right: 0.5rem; color: #fa709a;"></i>
-                                <strong>Day:</strong> <span style="margin-left: 0.5rem;">${day}</span>
-                            </div>
-                            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                                <i class="fas fa-clock" style="margin-right: 0.5rem; color: #fa709a;"></i>
-                                <strong>Time:</strong> <span style="margin-left: 0.5rem; font-family: monospace;">${timeSlot}</span>
-                            </div>
-                            <div style="margin-top: 1rem;">
-                                <strong>Engagement Details:</strong>
-                                <div style="margin-top: 0.5rem;">
-                                    <span class="detail-badge">${availability.details.division || 'N/A'}</span>
-                                    <span class="detail-badge">${availability.details.subject || 'N/A'}</span>
-                                    <span class="detail-badge">${availability.details.location || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+            // Show loading briefly for user feedback
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'Checking availability for all faculty...';
+            document.getElementById('resultsSection').style.display = 'none';
 
-            content.innerHTML = statusHtml;
+            setTimeout(() => {
+                checkAvailability(null, day, time, 'all');
+            }, 200);
+        }
 
-            // Hide all results first
-            document.querySelectorAll('#resultsSection > div').forEach(section => {
-                section.classList.add('hidden');
+        // Optimized availability checking function
+        function checkAvailability(selectedFaculty, day, time, mode) {
+            // Create a map for quick lookup
+            const scheduleMap = new Map();
+            
+            // Filter once and create lookup map
+            timetableData.forEach(row => {
+                if (row.Day === day && row['Start Time'] === time) {
+                    scheduleMap.set(row.Faculty, row);
+                }
             });
-            
-            singleResult.classList.remove('hidden');
+
+            const freeFaculty = [];
+            const busyFaculty = [];
+
+            // Get faculty list based on mode
+            const facultyToCheck = mode === 'single' ? [selectedFaculty] : allFaculty;
+
+            // Process faculty quickly
+            facultyToCheck.forEach(facultyName => {
+                const facultySchedule = scheduleMap.get(facultyName);
+                
+                if (facultySchedule && facultySchedule.Division && facultySchedule.Subject) {
+                    // Faculty is busy
+                    busyFaculty.push({
+                        name: facultyName,
+                        division: facultySchedule.Division,
+                        subject: facultySchedule.Subject,
+                        location: facultySchedule.Location,
+                        workload: mode === 'all' ? calculateDayWorkload(facultyName, day) : 0
+                    });
+                } else {
+                    // Faculty is free
+                    freeFaculty.push({
+                        name: facultyName,
+                        workload: mode === 'all' ? calculateDayWorkload(facultyName, day) : 0
+                    });
+                }
+            });
+
+            // Display results immediately
+            displayResults(freeFaculty, busyFaculty, day, time, mode, selectedFaculty);
+
+            // Hide loading and show results
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').classList.add('fade-in');
         }
 
-        // Display all faculty results
-        function displayAllResults(day, timeSlot, results) {
-            const freeFaculty = results.filter(r => r.availability.status === 'free');
-            const busyFaculty = results.filter(r => r.availability.status === 'busy');
-
-            // Update free faculty content
-            const freeContent = document.getElementById('freeFactoryContent');
-            if (freeFaculty.length === 0) {
-                freeContent.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        <i class="fas fa-user-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p>No faculty available during this time slot</p>
-                        <p style="font-size: 0.9rem;">${day} • ${timeSlot}</p>
-                    </div>
-                `;
+        // Optimized display results function
+        function displayResults(freeFaculty, busyFaculty, day, time, mode, selectedFaculty) {
+            const timeDisplay = `${time}-${getEndTime(time)}`;
+            const resultsGrid = document.getElementById('resultsGrid');
+            const freeCard = document.getElementById('freeCard');
+            const busyCard = document.getElementById('busyCard');
+            
+            // For single faculty, show only relevant card
+            if (mode === 'single') {
+                resultsGrid.classList.add('single-column');
+                
+                if (freeFaculty.length > 0) {
+                    // Show only free card
+                    freeCard.style.display = 'block';
+                    busyCard.style.display = 'none';
+                    
+                    document.getElementById('freeCount').textContent = `${selectedFaculty} is available`;
+                    
+                    // Display single faculty free result
+                    const freeFacultyList = document.getElementById('freeFacultyList');
+                    freeFacultyList.innerHTML = `
+                        <div class="single-faculty-result">
+                            <span class="status-emoji">✅</span>
+                            <div class="result-status free">FREE</div>
+                            <div class="faculty-name-large">${selectedFaculty}</div>
+                            <div class="status-text">is available</div>
+                            
+                            <div class="detail-section">
+                                <div class="detail-label">Day:</div>
+                                <div class="detail-value">${day}</div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <div class="detail-label">Time:</div>
+                                <div class="detail-value">${timeDisplay}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Show only busy card
+                    freeCard.style.display = 'none';
+                    busyCard.style.display = 'block';
+                    
+                    document.getElementById('busyCount').textContent = `${selectedFaculty} is occupied`;
+                    
+                    // Display single faculty busy result
+                    const busyFacultyList = document.getElementById('busyFacultyList');
+                    const busyFacultyData = busyFaculty[0];
+                    busyFacultyList.innerHTML = `
+                        <div class="single-faculty-result">
+                            <span class="status-emoji">❌</span>
+                            <div class="result-status busy">BUSY</div>
+                            <div class="faculty-name-large">${selectedFaculty}</div>
+                            <div class="status-text">is occupied</div>
+                            
+                            <div class="detail-section">
+                                <div class="detail-label">Day:</div>
+                                <div class="detail-value">${day}</div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <div class="detail-label">Time:</div>
+                                <div class="detail-value">${timeDisplay}</div>
+                            </div>
+                            
+                            <div class="engagement-details">
+                                <div class="detail-label">Engagement Details:</div>
+                                <div class="detail-value">${busyFacultyData.division} ${busyFacultyData.subject} ${busyFacultyData.location}</div>
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
-                freeContent.innerHTML = `
-                    <div style="margin-bottom: 1rem; text-align: center;">
-                        <p style="color: var(--text-secondary);">Available on <strong>${day}</strong> during <strong style="font-family: monospace;">${timeSlot}</strong></p>
-                        <div style="font-size: 2rem; font-weight: bold; color: #4facfe;">${freeFaculty.length}</div>
-                    </div>
-                    <div class="faculty-grid">
-                        ${freeFaculty.map(item => `
+                // For all faculty, show both cards
+                resultsGrid.classList.remove('single-column');
+                freeCard.style.display = 'block';
+                busyCard.style.display = 'block';
+                
+                // Update counts
+                document.getElementById('freeCount').textContent = `${freeFaculty.length} faculty member${freeFaculty.length !== 1 ? 's' : ''} ${freeFaculty.length !== 1 ? 'are' : 'is'} free`;
+                document.getElementById('busyCount').textContent = `${busyFaculty.length} faculty member${busyFaculty.length !== 1 ? 's' : ''} ${busyFaculty.length !== 1 ? 'are' : 'is'} busy`;
+
+                // Display free faculty
+                const freeFacultyList = document.getElementById('freeFacultyList');
+                if (freeFaculty.length === 0) {
+                    freeFacultyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No faculty members are free at this time.</p>';
+                } else {
+                    freeFacultyList.innerHTML = freeFaculty.map(faculty => {
+                        const isLowWorkload = faculty.workload >= 5;
+                        return `
+                            <div class="faculty-card ${isLowWorkload ? 'highlighted' : ''}">
+                                <div class="faculty-name">
+                                    ${faculty.name}
+                                  
+                                </div>
+                                <div class="faculty-details">
+                                    Available during: ${day} ${timeDisplay}<br>
+                                    Today's workload: ${faculty.workload} Hour${faculty.workload !== 1 ? 's' : ''}
+                                </div>
+                                <div class="faculty-status status-free-badge">Available</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Display busy faculty
+                const busyFacultyList = document.getElementById('busyFacultyList');
+                if (busyFaculty.length === 0) {
+                    busyFacultyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">All faculty members are free at this time.</p>';
+                } else {
+                    busyFacultyList.innerHTML = busyFaculty.map(faculty => {
+                        return `
                             <div class="faculty-card">
-                                <div class="faculty-name">
-                                    <i class="fas fa-user-check" style="color: #4facfe;"></i>
-                                    ${item.faculty}
-                                </div>
+                                <div class="faculty-name">${faculty.name}</div>
                                 <div class="faculty-details">
-                                    <span class="detail-badge" style="background: rgba(79, 172, 254, 0.2);">Available</span>
+                                    Engaged in: ${faculty.division} - ${faculty.subject}<br>
+                                    Location: ${faculty.location}<br>
+                                    During: ${day} ${timeDisplay}<br>
+                                    Today's workload: ${faculty.workload} Hour${faculty.workload !== 1 ? 's' : ''}
                                 </div>
+                                <div class="faculty-status status-busy-badge">Busy</div>
                             </div>
-                        `).join('')}
-                    </div>
-                `;
+                        `;
+                    }).join('');
+                }
             }
-
-            // Update busy faculty content
-            const busyContent = document.getElementById('busyFacultyContent');
-            if (busyFaculty.length === 0) {
-                busyContent.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        <i class="fas fa-user-check" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p>All faculty are free during this time slot</p>
-                        <p style="font-size: 0.9rem;">${day} • ${timeSlot}</p>
-                    </div>
-                `;
-            } else {
-                busyContent.innerHTML = `
-                    <div style="margin-bottom: 1rem; text-align: center;">
-                        <p style="color: var(--text-secondary);">Busy on <strong>${day}</strong> during <strong style="font-family: monospace;">${timeSlot}</strong></p>
-                        <div style="font-size: 2rem; font-weight: bold; color: #fa709a;">${busyFaculty.length}</div>
-                    </div>
-                    <div class="faculty-grid">
-                        ${busyFaculty.map(item => `
-                            <div class="faculty-card busy">
-                                <div class="faculty-name">
-                                    <i class="fas fa-user-times" style="color: #fa709a;"></i>
-                                    ${item.faculty}
-                                </div>
-                                <div class="faculty-details">
-                                    <div style="margin-bottom: 0.5rem;">
-                                        <span class="detail-badge" style="background: rgba(250, 112, 154, 0.2);">${item.availability.details.division || 'N/A'}</span>
-                                        <span class="detail-badge" style="background: rgba(254, 225, 64, 0.2);">${item.availability.details.subject || 'N/A'}</span>
-                                        <span class="detail-badge" style="background: rgba(160, 174, 192, 0.2);">${item.availability.details.location || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-
-            // Hide all results first
-            document.querySelectorAll('#resultsSection > div').forEach(section => {
-                section.classList.add('hidden');
-            });
-            
-            allResults.classList.remove('hidden');
         }
 
-        // Show success message
-        function showSuccess(message) {
-            fileStatus.innerHTML = `
-                <div class="success-message">
-                    <i class="fas fa-check-circle"></i>
-                    ${message}
-                </div>
-            `;
+        // Get end time for time slot
+        function getEndTime(startTime) {
+            const timeMap = {
+                '09:00': '09:55',
+                '09:55': '10:50',
+                '10:50': '11:45',
+                '11:45': '12:40',
+                '12:40': '01:35',
+                '01:35': '02:25',
+                '02:25': '03:15',
+                '03:15': '04:05',
+                '04:05': '04:55'
+            };
+            return timeMap[startTime] || '';
         }
 
-        // Show error message
-        function showError(message) {
-            fileStatus.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    ${message}
-                </div>
-            `;
+        // Clear results
+        function clearResults() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('freeFacultyList').innerHTML = '';
+            document.getElementById('busyFacultyList').innerHTML = '';
+            document.getElementById('freeCount').textContent = '0 faculty members are free';
+            document.getElementById('busyCount').textContent = '0 faculty members are busy';
+            document.getElementById('facultyNote').style.display = 'none';
         }
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeEventListeners();
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initializeWorkloadData();
         });
     </script>
 </body>
